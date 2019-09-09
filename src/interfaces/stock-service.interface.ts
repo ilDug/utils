@@ -6,5 +6,5 @@ export interface IStokService {
      * di un determinato prodotto identificato con il SKU
      * @param sku codice prodotto {string}
      */
-    stock(sku: string): Observable<number> | number | undefined;
+    stock(sku: string): Observable<number> | undefined;
 }
