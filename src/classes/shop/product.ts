@@ -1,5 +1,6 @@
 import { Price } from "./price";
-import { Observable } from 'rxjs'
+import { Observable, pipe } from 'rxjs'
+import { map } from 'rxjs/operators'
 import { IStokService } from "../../interfaces/stock-service.interface";
 import { IRankService } from "../../interfaces/rank-service.interface";
 
@@ -46,9 +47,10 @@ export class Product{
 /***********************************************************************+ */
 
     /** disponibilià */
-    public  availabile = (service : IStokService ) =>  this.stock(service) > 0
+    // public availabile = async (service: IStokService) => {return await this.stock(service).pipe(map(stock => stock > 0)).toPromise()}
+    public  availabile = (service: IStokService) =>  this.stock(service).pipe(map(stock => stock > 0)) 
 
-    get outOfStock(): boolean { return !this.availabile };
+    get outOfStock() { return !this.availabile }; //ERRORE
 
     /** titolo di presentazione del prodotto */
     public title : string = undefined
@@ -69,11 +71,8 @@ export class Product{
      * se UNDEFINED il valore deve essere considerato come infinito
      * @param service il servizio che gestice le socrte di magazzino e che implementa l'interfaccia IsStockSerice
      */
-    public stock = async (service: IStokService) => {
-            // let stock = await service.stock(this.sku)
-            // return stock
-        }
-    
+    public stock = (service: IStokService) => service.stock(this.sku) 
+
     /** array di percordi per l'immagini del prodotto */
     public images: string[] = [];
 
@@ -83,6 +82,7 @@ export class Product{
 
     /** valore che permette di ordinare i titoli in base alla loro popolarità */
     public rank : number = 0
+
     /** 
      * ottiene il valore aggiornat  che permette di ordinare i titoli in base alla loro popolarità.
      * @param service il servizio che gestice le socrte di magazzino e che implementa l'interfaccia IRankService
