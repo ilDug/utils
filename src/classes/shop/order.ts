@@ -1,5 +1,9 @@
 import { OrderStatus } from './order-status';
-
+import { annualCode } from '../../functions'
+import { OrderItem } from './order-item';
+import { Product } from './product';
+import { IShippingCostService, IBillingAddress, IShippingAddress } from '../../interfaces';
+import { Observable } from 'rxjs';
 
 
 
@@ -9,131 +13,100 @@ import { OrderStatus } from './order-status';
 export class Order{
 
     constructor(o: Partial<Order>) {
-        
-        // this.items = o.items ? o.items.map((i: any) => { return new OrderItem(i) }) : [];
+        /** genera un ID solo se non è passato nel contructor */
+        o.orderId = o.orderId || annualCode('o');  
+        o.items = o.items ? o.items.map(oi => new OrderItem(oi)) : [];
 
+        /** assegna le proprietà */
+        Object.assign(this, o);
     }
+
+    /** ID del database */
+    public orderId: string = null;
+
+    /** codie utente  */
+    public uid: string = null;
+
     /** elenco di OrderItems */
     public items : OrderItem[] = [];
 
+    /** calcola i costi di spedizione in base a un servizio esterno */
+    public shippingCost = (service: IShippingCostService) => service.cost(this)
 
-    /** codie utente  */
-    private uid: string;
-   
+    /** note per la spedizione */
+    public shippingNote: string = undefined
+
+    /** indirizzo di spedizione */
+    public shippingAddress: IShippingAddress = undefined
+    
+    /** codice promozionale riferito all'intero ordine */
+    public coupon: undefined
+
+    /** indirizzo di fatturazione  */
+    public billingAddress: IBillingAddress =  undefined
+
+    /** oggetto che raccoglie le informazioni sul pagamento retituite da paypal */
+    public payment: any = null;
 
 
-    /** codice univoco dell'Ordine */
-    private orderCode : string;
-
-
-
-    /** codice sconto che verrà utilizzato in segito nel servizio esterno per calcolare il totale */
-    // set coupon(c:string){ this.items.map((i:OrderItem)=>{ i.coupon = c }) };
-    // get coupon(){
-    //     let item:OrderItem = this.items.find((i:OrderItem)=>{ return i.coupon != null });
-    //     return item ? item.coupon : null;
+    /** valore totale dell'iva */
+    // get vat():number{
+    //     return
     // }
-    public coupon : string;
 
-    /** fa passare gli shipping cost per putti gli item e ne restituisce solo quello più alto */
-    get shippingCost():number{
-        // let costs: number[] = this.items.map((oi:OrderItem)=>{ return oi.shippingCost });
-        // let max :number = Math.max(...costs);
-        // return max;
-        return
+    /** importo al netto della spedizione, scontatoe  ma  senza iva */
+    get value():number{
+        return this.items.reduce((prev, item) => prev + item.price.value * item.quantity, 0)
+    }
+    
+    /** importo al netto della spedizione, senza sconto individuale, comprensivo di iva */
+    get subtotal(): number {
+        return this.items.reduce((prev, item) => prev + item.price.price * item.quantity, 0)
     }
 
-
-
-
-
-
-
-
-    /**
-     * metodo che partendo da un pbItem lo trasforma in on OrderItem e lo aggiunge all'elenco dell'odine
-     */
-    public addNewItem(oi: OrderItem):Order{
-        // oi.uid = this.getUid();
-        // oi.orderCode = this.getOrderCode();
-        oi.status.open();
-        this.items.push(oi);
-        return this;
-    }
-
-
-
-    /**
-     * imposta gli indirizzi
-     */
-    public setAddresses(bill:AddressBillingI, ship?:AddressShippingI, note?:string):Order{
-        this.items.forEach((i:OrderItem) => {
-            i.billingAddress = bill;
-            i.shippingAddress = ship? ship : bill;
-            i.shippingNote = note? note : i.shippingNote;
-        });
-        return this;
-    }
-
-
-
-
-    /**
-     * dopo il pagamento fossilizza tutte  le informazione dell'ordine
-     * in modo da potere salvare la versione definitiva sul server
-     */
-    public fossilize():Order{
-        this.items.map((i:OrderItem)=>{
-
-            /** fissa il prezzo concordato comprensivo di sconti */
-            i.finalPrice = i.total;
-
-            /** imposta l'ordine come acquistato */
-            i.status.buy()
-
-            /** salva copia delle info dell'item come json */
-            i.snapshot();
-
-            return i;
-        })
-        return this;
-    }
-
-
-
-
-    /** importo al netto della spedizione e dello sconto individuale */
-    get rawSubtotal():number{
-        let t: number = 0;
-        this.items.forEach((i:OrderItem)=>{ t = t + i.rawTotal});
-        return t;
-    }
-
-
-
-    /** importo al netto della spedizione ma con gli elementi scontati individualmente */
-    get subtotal():number{
-        let t: number = 0;
-        this.items.forEach((i:OrderItem)=>{ t = t + i.total});
-        return t;
-    }
-
-
-
-    /** importo finale da pagare comprensivo delle spese di spedizione e dello sconto sugli elementi*/
+    /** importo al netto della spedizione ma con gli elementi scontati individualmente, comprensivo di iva */
     get total():number{
-        let t: number = this.subtotal;
-        //t= (t - this.discount.bonus) * (1 - this.discount.rate);
-        t = t + this.shippingCost;
-        return t;
+        return this.items.reduce((prev, item) => prev + item.price.amount * item.quantity, 0)
     }
 
+
+    /** importo finale da pagare comprensivo delle spese di spedizione e dello sconto sugli elementi  e dell'iva */
+    public  amount(service: IShippingCostService): number {
+       
+        
+        
+    }
 
     /** il massimo dei giorni di elaborazione tra tutti gl iitems  */
     get processingTime():number{
-        let times = this.items.map((oi:OrderItem)=>{ return oi.processingTime })
-        return Math.max(...times);
+        return this.items.reduce((prev, item) => Math.max(prev, item.processingTime), 0)
     }
+
+
+    /**
+     * aggiunge all'elenco dell'odine
+     */
+    public addItem(p: Product):Order{
+        /** controlla che esista già nell'ordine lo stesso prodotto */
+        let i = this.items.findIndex(item => item.productId === p.productId);
+
+        if (i >= 0) {
+            this.items[i].increment();
+        } else {
+            /** trasforma il Product In un Order Item e lo aggiunge */
+            let oi = new OrderItem(p, this.orderId)
+            this.items.push(oi);
+        }
+        return this;
+    }
+
+
+
+
+
+
+
+
 
 
 }

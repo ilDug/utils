@@ -17,6 +17,10 @@ export class Price {
     public discount: Discount;
 
 
+    /** costo di spedizione da calcolare esternamente */
+    public shippingCost: number = 0;
+
+    
     /**
      * ritorna l'importo scontato e comprensivo di IVA
      */
@@ -27,7 +31,7 @@ export class Price {
 
 
     /**
-     * rutorna il valore al netto dell'IVa
+     * rutorna il valore scontato,  al netto dell'IVa
      */
     get value(): number { return (this.amount / (1 + this.vat)); }
 

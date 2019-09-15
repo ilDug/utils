@@ -3,7 +3,7 @@ import { Observable, pipe } from 'rxjs'
 import { map } from 'rxjs/operators'
 import { IStokService } from "../../interfaces/stock-service.interface";
 import { IRankService } from "../../interfaces/rank-service.interface";
-import { sequentialCode } from '../../functions'
+import { annualCode } from '../../functions'
 
 /** valore di default in giorni  */
 const BASE_PROCESSING_TIME = 4;
@@ -23,7 +23,7 @@ export class Product{
 
     constructor(p : Partial<Product>){
         /** genera un ID solo se non è passato nel contructor */
-        p.productId = p.productId ? p.productId : sequentialCode(8);
+        p.productId = p.productId ? p.productId : annualCode('p');
         /** inizializza il prezzo se null */
         p.price = p.price ? new Price(p.price) : new Price({});
         /** assegna le proprietà */
@@ -69,7 +69,8 @@ export class Product{
     public details: Detail = {}
 
     /** prezzo */
-    public price: Price
+    public price: Price;
+
 
     /** 
      * numero di oggetti disponibili in magazzino
