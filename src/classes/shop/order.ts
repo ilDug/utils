@@ -1,9 +1,9 @@
-import { OrderStatus } from './order-status';
 import { annualCode } from '../../functions'
 import { OrderItem } from './order-item';
 import { Product } from './product';
 import { IShippingCostService, IBillingAddress, IShippingAddress } from '../../interfaces';
-import { Observable } from 'rxjs';
+import { Observable, isObservable, of } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 
 
@@ -48,11 +48,16 @@ export class Order{
     /** oggetto che raccoglie le informazioni sul pagamento retituite da paypal */
     public payment: any = null;
 
-
-    /** valore totale dell'iva */
-    // get vat():number{
-    //     return
-    // }
+    /** stato dell'ordine
+     * OPEN 
+     * CLOSED 
+     * WORKING 
+     * SHIPPED 
+     * RETURNED 
+     * REFOUNDED 
+     * REJECTED 
+    */
+    public orderStatus: string = 'OPEN';
 
     /** importo al netto della spedizione, scontatoe  ma  senza iva */
     get value():number{
@@ -69,13 +74,13 @@ export class Order{
         return this.items.reduce((prev, item) => prev + item.price.amount * item.quantity, 0)
     }
 
-
     /** importo finale da pagare comprensivo delle spese di spedizione e dello sconto sugli elementi  e dell'iva */
-    public  amount(service: IShippingCostService): number {
-       
-        
-        
+    public amount(service: IShippingCostService): Observable<number> {
+        const operation = (sc: number) => sc + this.total;
+        const sc = this.shippingCost(service)
+        return isObservable<number>(sc) ? sc.pipe(map(operation)) : of(operation(sc)) 
     }
+
 
     /** il massimo dei giorni di elaborazione tra tutti gl iitems  */
     get processingTime():number{
@@ -84,7 +89,7 @@ export class Order{
 
 
     /**
-     * aggiunge all'elenco dell'odine
+     * aggiunge all'elenco dell'ordine
      */
     public addItem(p: Product):Order{
         /** controlla che esista già nell'ordine lo stesso prodotto */
@@ -101,6 +106,13 @@ export class Order{
     }
 
 
+    /** rimuove un prodotto dall'ordine */
+    public removeItem(p:Product):Order{
+        /** controlla che esista già nell'ordine lo stesso prodotto */
+        let i = this.items.findIndex(item => item.productId === p.productId);
+        if (i >= 0) this.items.splice(i, 1)
+        return this;
+    }
 
 
 
