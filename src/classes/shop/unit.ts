@@ -5,10 +5,7 @@ export class Unit {
         this.products = [...products];
     }
 
-
-
     public products: Product[] = [];
-
 
 
     get name():string {

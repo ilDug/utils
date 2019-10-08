@@ -45,6 +45,11 @@ export class Product{
     /** GRUPPO O UNITA' che raggruppa tutti gli articoli  classificabili come un solo prodotto */
     public unit: string = null;
 
+    /** descrizione che differenzia tra tutti i prodotti di un singolo UNIT
+    * per esempio indicazioni su taglia,  colore e materiale
+    */
+    public model: string = null;
+
     /** identifica se visibile sul sito , di default per sicurezza è impostato a true */
     public hidden: boolean = true;
 
@@ -59,7 +64,7 @@ export class Product{
 
     /** titolo di presentazione del prodotto */
     public title : string = undefined
-    
+
     /** description */
     public description : string = undefined;
 
