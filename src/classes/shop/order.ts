@@ -1,7 +1,7 @@
 import { annualCode } from '../../functions'
-import { OrderItem } from './order-item';
+import { Article } from './article';
 import { Product } from './product';
-import { IShippingCostService, IBillingAddress, IShippingAddress } from '../../interfaces';
+import { IShippingCostService, IBillingAddress, IShippingAddress, IFinalPriceService } from '../../interfaces';
 import { Observable, isObservable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 
@@ -15,7 +15,7 @@ export class Order{
     constructor(o: Partial<Order>) {
         /** genera un ID solo se non è passato nel contructor */
         o.orderId = o.orderId || annualCode('o');  
-        o.items = o.items ? o.items.map(oi => new OrderItem(oi)) : [];
+        o.articles = o.articles ? o.articles.map(oi => new Article(oi)) : [];
 
         /** assegna le proprietà */
         Object.assign(this, o);
@@ -28,7 +28,7 @@ export class Order{
     public uid: string = null;
 
     /** elenco di OrderItems */
-    public items : OrderItem[] = [];
+    public articles : Article[] = [];
 
     /** calcola i costi di spedizione in base a un servizio esterno */
     public shippingCost = (service: IShippingCostService) => service.cost(this)
@@ -49,29 +49,41 @@ export class Order{
     public payment: any = null;
 
     /** stato dell'ordine
-     * OPEN 
-     * CLOSED 
+     * SHOPPING 
      * WORKING 
      * SHIPPED 
+     * DELIVERED
+     * REJECTED 
      * RETURNED 
      * REFOUNDED 
-     * REJECTED 
+     * CLOSED 
     */
-    public orderStatus: string = 'OPEN';
+    public status: string = 'SHOPPING';
+
+    public dates: { [date: string]: number } = {
+        "creationDate": undefined,
+        "paymentDate": undefined,
+        "shippingDate": undefined,
+        "closingDate": undefined
+    }
+
+    /** numbero di traking */
+    public trackingNumber: string ;
+
 
     /** importo al netto della spedizione, scontatoe  ma  senza iva */
     get value():number{
-        return this.items.reduce((prev, item) => prev + item.price.value * item.quantity, 0)
+        return this.articles.reduce((prev, item) => prev + item.price.value * item.quantity, 0)
     }
     
     /** importo al netto della spedizione, senza sconto individuale, comprensivo di iva */
     get subtotal(): number {
-        return this.items.reduce((prev, item) => prev + item.price.price * item.quantity, 0)
+        return this.articles.reduce((prev, item) => prev + item.price.price * item.quantity, 0)
     }
 
     /** importo al netto della spedizione ma con gli elementi scontati individualmente, comprensivo di iva */
     get total():number{
-        return this.items.reduce((prev, item) => prev + item.price.amount * item.quantity, 0)
+        return this.articles.reduce((prev, item) => prev + item.price.amount * item.quantity, 0)
     }
 
     /** importo finale da pagare comprensivo delle spese di spedizione e dello sconto sugli elementi  e dell'iva */
@@ -84,23 +96,23 @@ export class Order{
 
     /** il massimo dei giorni di elaborazione tra tutti gl iitems  */
     get processingTime():number{
-        return this.items.reduce((prev, item) => Math.max(prev, item.processingTime), 0)
+        return this.articles.reduce((prev, item) => Math.max(prev, item.processingTime), 0)
     }
 
 
     /**
      * aggiunge all'elenco dell'ordine
      */
-    public addItem(p: Product):Order{
+    public addArticle(p: Product):Order{
         /** controlla che esista già nell'ordine lo stesso prodotto */
-        let i = this.items.findIndex(item => item.productId === p.productId);
+        let i = this.articles.findIndex(item => item.productId === p.productId);
 
         if (i >= 0) {
-            this.items[i].increment();
+            this.articles[i].increment();
         } else {
-            /** trasforma il Product In un Order Item e lo aggiunge */
-            let oi = new OrderItem(p, this.orderId)
-            this.items.push(oi);
+            /** trasforma il Product In un Article e lo aggiunge */
+            let item = new Article(p, this.orderId)
+            this.articles.push(item);
         }
         return this;
     }
@@ -109,13 +121,110 @@ export class Order{
     /** rimuove un prodotto dall'ordine */
     public removeItem(p:Product):Order{
         /** controlla che esista già nell'ordine lo stesso prodotto */
-        let i = this.items.findIndex(item => item.productId === p.productId);
-        if (i >= 0) this.items.splice(i, 1)
+        let i = this.articles.findIndex(item => item.productId === p.productId);
+        if (i >= 0) this.articles.splice(i, 1)
         return this;
     }
 
 
 
+
+
+    /**
+     * metodi che posrtano alle rispettive fasi dell'ordine
+     * open --> Shopping                        [SHOPPING]
+     * buy  --> Working                         [WORKING]
+     * ship  --> Delivering                     [SHIPPED]
+     * close --> Closing (positive)             [CLOSED]
+     *
+     * reject  --> Returning                    [REJECTED]
+     * retake --> Refounding                    [RETURNED]
+     * refound --> close --> Closing (negative) [REFOUNDED]
+     */
+
+
+    /**
+      * SHOPPING - inizializza l'ordine in fase di apertura
+      */
+    public open(): Order {
+        this.dates.creationDate = new Date().getTime();
+        this.status = "SHOPPING"
+        return this;
+    }
+
+
+
+
+    /**
+     * WORKING - imposta come pagato e confermato l'ordine ,  in attesa di conclusione
+     * inoltre salvare l'ordine sul server e impostare il finalPrice
+     */
+    public buy(service: IFinalPriceService): Order {
+        this.dates.paymentDate = new Date().getTime();
+        this.status = "WORKING"
+        
+        this.articles.forEach(async (article: Article) => {
+            article.finalPrice = await service.price(article, this)
+        });
+
+        return this;
+    }
+
+
+
+    /**
+     * DELIVERING - pacco in consegna
+     */
+    public ship(): Order {
+        this.dates.shippingDate = new Date().getTime();
+        this.status = "SHIPPED"
+        return this;
+    }
+
+
+
+
+    /**
+     *
+     */
+    public close(positive: boolean): Order {
+        this.dates.closingDate = new Date().getTime();
+        this.status = "CLOSED"
+        return this;
+    }
+
+
+
+
+    /**
+     * da definire
+     */
+    public reject(): Order {
+        this.status = "REJECTED"
+        return this;
+    }
+
+
+
+
+    /**
+     * da definire
+     */
+    public retake(): Order {
+        this.status = "RETURNED"
+        return this;
+    }
+
+
+
+
+    /**
+     * da definire
+     */
+    public refound(): Order {
+        this.status = "REFOUNDED"
+        return this;
+    }
 
 
 

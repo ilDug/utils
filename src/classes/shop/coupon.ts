@@ -1,28 +1,34 @@
-// export class Promo{
-//     /** nome della campagna promozionale  */
-//     public campaign: string;
+export class Promo{
 
-//     /** tipologia della prompzione ( 3x2, buono, sconto) */
-//     public type: string;
+    constructor(c:any){
+        /** assegna le proprietà */
+        Object.assign(this, c);
+    }
 
-//     /** se il codice passato ha ritrovato una corrispondenza corretta tra le promozioni in corso */
-//     public valid : boolean;
+    public coupon: string;
 
-//     /** se la promozione seppur trovata, non è più valida */
-//     public expired: boolean;
+    /** nome della campagna promozionale  */
+    public campaign: string;
 
-//     /** valore del buono */
-//     public value: any;
+    /** tipologia della prompzione ( 3x2, buono, sconto) */
+    public type: string;
 
-//     /** etichetta descrittiva della promozione */
-//     public label:string;
+    /** se il codice passato ha ritrovato una corrispondenza corretta tra le promozioni in corso */
+    public valid : boolean;
 
-//     constructor(c:any){
-//         this.campaign = c.campaign ? c.campaign : null;
-//         this.type = c.type ? c.type : null;
-//         this.valid = c.valid;
-//         this.expired = c.expired;
-//         this.value = c.value ? c.value : null;
-//         this.label = c.label ? c.label : null;
-//     }
-// }
+    /** se la promozione seppur trovata, non è più valida */
+    public expired: boolean;
+
+    /** valore del buono */
+    public value: any;
+
+    /** etichetta descrittiva della promozione */
+    public label:string;
+
+    /** data di partenza della promozione */
+    public since: number;
+
+    /** data di scadenza della promozione */
+    public until: number;
+
+}

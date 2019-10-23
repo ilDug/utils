@@ -43,16 +43,10 @@ export class Product{
     public sku: string = undefined;
 
     /** GRUPPO O UNITA' che raggruppa tutti gli articoli  classificabili come un solo prodotto */
-    public unit: string = null;
-
-    /** descrizione che differenzia tra tutti i prodotti di un singolo UNIT
-    * per esempio indicazioni su taglia,  colore e materiale
-    */
-    public model: string = null;
+    public brand: string = null;
 
     /** identifica se visibile sul sito , di default per sicurezza è impostato a true */
     public hidden: boolean = true;
-
 
 /***********************************************************************+ */
 
@@ -65,8 +59,13 @@ export class Product{
     /** titolo di presentazione del prodotto */
     public title : string = undefined
 
-    /** description */
+    /** description uguale per tutti gli articoli di un unico BRAND */
     public description : string = undefined;
+
+    /** descrizione che differenzia tra tutti i prodotti di un singolo BRAND
+    * per esempio indicazioni su taglia,  colore e materiale
+    */
+    public model: string = null;
 
     /** ATTRIBUTI
      * dimensions * color * size * wheight * ecc...

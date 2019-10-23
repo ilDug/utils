@@ -1,6 +1,6 @@
 import { Product } from "./product";
 
-export class Unit {
+export class Brand {
     constructor(products: Product[]) {
         this.products = [...products];
     }
@@ -10,12 +10,12 @@ export class Unit {
 
     get name():string {
         if (this.products.length === 0) return 'undefined unit name';
-        return this.products[0].unit;
+        return this.products[0].brand;
     }
 
 
 
-    public addProduct(p: Product): Unit {
+    public addProduct(p: Product): Brand {
         this.products.push(p);
         return this;
     }
