@@ -125,7 +125,7 @@ class ProductsController
     public function remove($productId)
     {
         $st = $this->pdo->prepare(Q_DELETE);
-        $st->bindParam(':productId',    $product->productId,    PDO::PARAM_STR);
+        $st->bindParam(':productId',    $productId,    PDO::PARAM_STR);
         if(!$res = $st->execute() ) 
         {
             throw new Exception("Errore eliminazione " . json_encode($st->errorInfo()), 1);
@@ -139,8 +139,8 @@ class ProductsController
     /** nasconde un prodotto dal catalogo; return BOOLEAN*/
     public function hide($productId, $hidden = 1){
         $st = $this->pdo->prepare(Q_HIDE);
-        $st->bindParam(':productId',    $product->productId,    PDO::PARAM_STR);
-        $st->bindParam(':hidden',       $hidden,                PDO::PARAM_INT);
+        $st->bindParam(':productId',    $productId,     PDO::PARAM_STR);
+        $st->bindParam(':hidden',       $hidden,        PDO::PARAM_INT);
         if(!$res = $st->execute() ) 
         {
             throw new Exception("Errore oscuramento " . json_encode($st->errorInfo()), 1);
