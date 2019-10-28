@@ -15,7 +15,6 @@ $router = new \Bramus\Router\Router();
  * login con username e password
  */
 $router->post('/login', function() {
-    $ctrl = new AccessController();
     $body = json_decode(file_get_contents('php://input'));
 
     if(!isset($body->username) || $body->username === null ){
@@ -27,6 +26,7 @@ $router->post('/login', function() {
     }
 
     try {
+        $ctrl = new AccessController();
         echo $ctrl->login($body->username, $body->password);
     } catch (\Exception $err) {
         header($_SERVER['SERVER_PROTOCOL'] . ' ' . $err->getCode() . ' ' . $err->getMessage(), true, $err->getCode());

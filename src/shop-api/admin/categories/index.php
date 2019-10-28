@@ -10,7 +10,7 @@ if(!in_array("admin" ,$auth->claims->authorizations))
 
 // Require composer autoloader
 require __DIR__ . '/../../vendor/autoload.php';
-require_once __DIR__ .'/../../controllers/products.controller.php';
+require_once __DIR__ .'/../../controllers/categories.controller.php';
 
 
 // Create Router instance
