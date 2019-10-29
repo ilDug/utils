@@ -5,7 +5,7 @@ require_once __DIR__ . '/../../auth/auth.controller.php';
 $auth = new \DAG\Auth();
 $auth->authenticate(true);
 if(!in_array("admin" ,$auth->claims->authorizations)) 
-    { header($_SERVER['SERVER_PROTOCOL'] . ' 401 Pagina disponibile solo agli amministratori'); die(); }
+    { header($_SERVER['SERVER_PROTOCOL'] . ' 401 API endpoint disponibile solo agli amministratori'); die(); }
 /*-------------------------------------------------------------------------*/
 
 // Require composer autoloader
@@ -76,7 +76,6 @@ $router->post('/', function() {
 
 
 $router->put('/hide/(\w+)', function($productId) {
-    $product = json_decode(file_get_contents('php://input'));
     try {
         $products = new ProductsController();
         echo json_encode( $products->hide($productId) );
@@ -90,7 +89,6 @@ $router->put('/hide/(\w+)', function($productId) {
 
 
 $router->put('/show/(\w+)', function($productId) {
-    $product = json_decode(file_get_contents('php://input'));
     try {
         $products = new ProductsController();
         echo json_encode( $products->show($productId) );
