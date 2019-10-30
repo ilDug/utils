@@ -20,7 +20,8 @@ $router->get('/check/(\w+)', function($permission) {
     if($auth->authenticate($auth_header) !== true) { echo json_encode(false); die(); }
     if(!$permission) { echo json_encode(false); die(); }
 
-    $auth_list = (!$auth->claims->authorizations || ($auth->claims->authorizations[0] === null && count($auth->claims->authorizations) === 1 ) ) 
+    $auth_list = 
+        (!$auth->claims->authorizations || ($auth->claims->authorizations[0] === null && count($auth->claims->authorizations) === 1 ) ) 
         ? [] : $auth->claims->authorizations;
 
     echo json_encode( in_array( $permission, $auth_list ) );

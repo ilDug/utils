@@ -16,13 +16,12 @@
 
 class ShopConnection
 {
-
-    const DBNAME = "ekdata";
+    const DBNAME = "shop";
     const DBHOST = "localhost";
-    const DBUSER = "ekdbuser";
-    const DBPASS = "qewqewqew";
+    const DBUSER = "dagshopuser";
+    const DBPASS = "";
 
-    const PDO_DSN = 'mysql:host='.DBHOST.';dbname='.DBNAME.';port=3306;charset=utf8mb4';
+    const PDO_DSN = 'mysql:host='.self::DBHOST.';dbname='.self::DBNAME.';port=3306;charset=utf8mb4';
 
     const PDO_OPTS  = array(
         // PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
@@ -39,10 +38,10 @@ class ShopConnection
     public static function pdo(): PDO
     {
         try {
-            $pdo = new  PDO(PDO_DSN, DBUSER, DBPASS, PDO_OPTS);
+            $pdo = new  PDO(self::PDO_DSN, self::DBUSER, self::DBPASS, self::PDO_OPTS);
             return $pdo;
         } catch (\Exception $e) {
-            throw new Exception("Errore iniziale di connessione al server con PDO - database ". DB, 500);
+            throw new Exception("Errore iniziale di connessione al server con PDO - database ". self::DB, 500);
             die($e);
         }
     }

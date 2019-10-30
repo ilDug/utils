@@ -15,7 +15,7 @@ require_once __DIR__ . '/../classes/rsa-key-chain.php';
 
 
         public  $pdo ;
-        function __construct() { $this->pdo = DagConnection::pdo(); }
+        function __construct() { $this->pdo = AuthConnection::pdo(); }
 
 		/**
 		*	ricerca nel database la corrispondenza tra username e password
@@ -34,7 +34,7 @@ require_once __DIR__ . '/../classes/rsa-key-chain.php';
 				return false;
 			}else{
 				if($o->active == 0){
-					throw new Exception( " L'utente ". $sql." non e' ancora stato attivato. Procedere con l'attivazione dell'account . Se ci sono problemi contatta il supporto tecnico", 500);
+					throw new Exception( " L'utente  non e' ancora stato attivato. Procedere con l'attivazione dell'account . Se ci sono problemi contatta il supporto tecnico", 500);
 					return false;
 				}else{
 					if(!password_verify($pw, $o->password)){
