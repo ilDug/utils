@@ -11,9 +11,8 @@ class ProductsController
     
     const QF_INSERT  = __DIR__ . "/../queries/product-insert.sql";
     const QF_EDIT  = __DIR__ . "/../queries/product-edit.sql";
-
-    const Q_SELECT_ALL  = "SELECT * FROM products WHERE hidden = :hidden";
-    const Q_SELECT_ONE  = "SELECT * FROM products WHERE productId = :productId AND hidden <= :hidden";
+    const QF_SELECT_ALL  = __DIR__ . "/../queries/products-select-all.sql";
+    const QF_SELECT_ONE  = __DIR__ . "/../queries/products-select-one.sql";
     const Q_DELETE  = "DELETE FROM products WHERE productId = :productId";
     const Q_HIDE  = "UPDATE products SET hidden = :hidden WHERE productId = :productId";
 
@@ -31,7 +30,7 @@ class ProductsController
     public function read($hidden = 0)
     {
         $products = array();
-        $st = $this->pdo->prepare(self::Q_SELECT_ALL);
+        $st = $this->pdo->prepare(self::QF_SELECT_ALL);
         $st->bindParam(':hidden', $hidden, PDO::PARAM_INT);
         $st->execute();
         while($row = $st->fetch()){
@@ -44,7 +43,7 @@ class ProductsController
 
     public function findOne($productId , $hidden = 0)
     {
-        $st = $this->pdo->prepare(self::Q_SELECT_ONE);
+        $st = $this->pdo->prepare(self::QF_SELECT_ONE);
         $st->bindParam(':productId',    $productId,     PDO::PARAM_STR);
         $st->bindParam(':hidden',       $hidden,        PDO::PARAM_INT);
         $st->execute();
