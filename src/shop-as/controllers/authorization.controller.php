@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . '/../authentication/authentication.controller.php';
-require_once __DIR__ . "/../lib/pdo-connection.php";
+require_once __DIR__ . '/authentication.controller.php';
+require_once __DIR__ . "/../lib/as.pdo.php";
 
 /**
  * classe creata per i controlli di autorizzazione e autenticazione
@@ -17,7 +17,7 @@ class AuthorizationController extends AuthenticationController
 
     public function __construct() { 
         parent::__construct(); 
-        $this->pdo = DagConnection::pdo();
+        $this->pdo = AuthConnection::pdo();
     }
 
 

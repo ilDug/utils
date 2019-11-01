@@ -6,7 +6,7 @@ class UsersController
     public $pdo;
     
     public function __construct(){
-        $this->pdo = DagConnection::pdo();
+        $this->pdo = AuthConnection::pdo();
     }
 
 

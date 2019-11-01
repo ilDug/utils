@@ -41,7 +41,7 @@ class ShopConnection
             $pdo = new  PDO(self::PDO_DSN, self::DBUSER, self::DBPASS, self::PDO_OPTS);
             return $pdo;
         } catch (\Exception $e) {
-            throw new Exception("Errore iniziale di connessione al server con PDO - database ". self::DB, 500);
+            throw new Exception("Errore iniziale di connessione al server con PDO - database ". self::DBNAME, 500);
             die($e);
         }
     }

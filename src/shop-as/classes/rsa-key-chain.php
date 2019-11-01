@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../auth.config.php';
+require_once __DIR__ . '/../app.config.php';
 
 /**
  * controller per la gestione delle chiavi RSA

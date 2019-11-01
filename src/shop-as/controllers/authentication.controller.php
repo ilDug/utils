@@ -1,7 +1,6 @@
 <?php
 require_once __DIR__ . '/../vendor/autoload.php';
-require_once __DIR__ . '/../auth.config.php';
-require_once __DIR__ . '/../engine.class.php';
+require_once __DIR__ . '/../app.config.php';
 require_once __DIR__ . '/../classes/jwt.php';
 require_once __DIR__ . '/../classes/rsa-key-chain.php';
 

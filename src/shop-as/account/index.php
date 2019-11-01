@@ -2,7 +2,7 @@
 
 // Require composer autoloader
 require_once __DIR__ . '/../vendor/autoload.php';
-require_once __DRI__ . '/../controllers/account.controller.php';
+require_once __DIR__ . '/../controllers/account.controller.php';
 require_once __DIR__ . '/../controllers/authorization.controller.php';
 
 
@@ -32,12 +32,12 @@ $router->post('/login', function() {
  * registra un nuovo utente e ritorna il token di login
  */
 $router->post('/register', function() {
-    header('Content-Type: application/json');
+    // header('Content-Type: application/json');
     $body = json_decode(file_get_contents('php://input'));
 
     try {
         $account = new AccountController();
-        echo json_encode($account->register($body->user));
+        echo $account->register($body->user);
     } catch (\Exception $err) {
         header($_SERVER['SERVER_PROTOCOL'] . ' ' . $err->getCode() . ' ' . $err->getMessage(), true, $err->getCode());
     }

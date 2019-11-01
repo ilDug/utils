@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../auth.config.php';
+require_once __DIR__ . '/../app.config.php';
 require_once __DIR__ . '/../lib/as.pdo.php';
 require_once __DIR__ . '/../lib/utils.php';
 require_once __DIR__ . '/../lib/string.utility.php';
@@ -16,7 +16,7 @@ require_once __DIR__ . '/../emails/email.class.php';
 	class AccountController
 	{
         const Q_USER_TOKEN_DATA = "SELECT * from users_token_data WHERE uid = :uid;";
-        const Q_ACCESS_INSERT = "INSERT INTO accesses (uid, jti) VALUES (:uid, :jti)";
+        const Q_ACCESS_INSERT = "INSERT INTO accesses (uid, jti, ip) VALUES (:uid, :jti, :ip)";
         const QF_USERS_INSERT = __DIR__ . "/../queries/users.insert.sql";
         const Q_USER_ASSIGN_AUTHORIZATION = "INSERT INTO user_authorizations (uid, authorization) VALUES (:uid, :authorization)";
         const Q_ACTIVATION_KEY_INSERT = "INSERT INTO activations (uid, activationKey, scope) VALUES ( :uid, :activation_key, :scope )";
@@ -45,7 +45,7 @@ require_once __DIR__ . '/../emails/email.class.php';
             /** prova a recuperare i dati dell'utente con la sola email */
             $st = $this->pdo->prepare("SELECT password, active, uid from users WHERE email = :email");
             $st->bindParam(':email', $email, PDO::PARAM_STR );
-			$st->execute();
+            $st->execute();
             $o = $st->fetch();
             
 			//gestisce l'errore se non esiste l'utente nel database
@@ -65,7 +65,7 @@ require_once __DIR__ . '/../emails/email.class.php';
                     $st = $this->pdo->prepare(self::Q_USER_TOKEN_DATA);
                     $st->bindParam(':uid', $o->uid, PDO::PARAM_STR );
                     $st->execute();
-                    $u = $st->fetch();
+                    if (!$u = $st->fetch()) { throw new Exception("Errore ricerca utente", 500); return false; }
 
                     $rawClaims = array(
                         "iss" => JWT_ISS,
@@ -78,6 +78,7 @@ require_once __DIR__ . '/../emails/email.class.php';
                         "exp" => null,
                         "jti" => null,
                         "email"=> $u->email, 
+                        "active" => $u->active,
                         "authorizations" => json_decode($u->authorizations)
                     );
 
@@ -85,11 +86,14 @@ require_once __DIR__ . '/../emails/email.class.php';
                     $jwt = (new JWT());
                     $token = $jwt->generate($rawClaims, $keys->private);
                     $jti = $jwt->payload->jti; 
+                    $ip = $_SERVER['REMOTE_ADDR'] ? $_SERVER['REMOTE_ADDR'] : NULL;
 
                     $st = $this->pdo->prepare(self::Q_ACCESS_INSERT);
-                    $st->bindParam(':uid', $u->uid, PDO::PARAM_STR );
-                    $st->bindParam(':jti', $jti, PDO::PARAM_STR );
+                    $st->bindParam(':uid',  $u->uid,  PDO::PARAM_STR );
+                    $st->bindParam(':jti',  $jti,   PDO::PARAM_STR );
+                    $st->bindParam(':ip',   $ip,    PDO::PARAM_STR );
                     $st->execute();
+                    
                     if($st->rowCount() <= 0) {
                         throw new Exception("Errore,  si sono verificati problemi con la connsessione al server, riprovare più tardi", 500);
                         return false;
@@ -108,19 +112,19 @@ require_once __DIR__ . '/../emails/email.class.php';
         */
         public function register($user)
         {
+            if(!$user) { throw new Exception("parametro UTENTE non corretto", 400); return;   }
+
             /** cotrolla che non manchino i parametri nell'oggetto USER */
-            if(!DAG\UTILS\checkFields($user, ["email", "password"])){ return false;}
+            if(!DAG\UTILS\checkFields($user, ["email", "password"])) return false;
 
             /** EMAIL */
-            if(isset($user->email)){
-                $user->email = strtolower(trim($user->email));
-                if( !filter_var($user->email, FILTER_VALIDATE_EMAIL) ) {
-                    throw new Exception("l'email non e' nella forma corretta", 400);
-                    return;  
-                }
-            } else $user->email = null;
+            $user->email = strtolower(trim($user->email));
+            if( !filter_var($user->email, FILTER_VALIDATE_EMAIL) ) {
+                throw new Exception("l'email non e' nella forma corretta", 400);
+                return;  
+            }
 
-                        /** controlla che l'utente esista */
+            /** controlla che l'utente esista */
             if($this->user_exists($user->email)){
                 throw new Exception("un utente con questa email esiste gia' nel database", 400);
                 return;             
@@ -147,27 +151,26 @@ require_once __DIR__ . '/../emails/email.class.php';
                 $st->bindParam(':password', $user->password, PDO::PARAM_STR );
                 if(!$st->execute()) throw new Exception("Errore inserimento utente", 500);
                 
-                
                 /** attribuise le autorizzazioni di base */
                 $st = $this->pdo->prepare(self::Q_USER_ASSIGN_AUTHORIZATION);
                 $st->bindParam(':uid', $user->uid, PDO::PARAM_STR);
-                $st->bindParam(':authorization', $authorization = "basic", PDO::PARAM_STR);
+                $st->bindValue(':authorization', "basic", PDO::PARAM_STR);
                 if (!$st->execute()) throw new Exception("Errore assegnazione autorizzazione di base all'utente", 500);
-
-
-                //genera una chiave di attivazione e la inserisce
+                
+                
+                /* genera una chiave di attivazione e la inserisce */
                 $st = $this->pdo->prepare(self::Q_ACTIVATION_KEY_INSERT);
                 $st->bindParam(':uid',              $user->uid,             PDO::PARAM_STR);
                 $st->bindParam(':activation_key',   $activation_key,        PDO::PARAM_STR);
                 $st->bindValue(':scope',            self::ACTIVATION_SCOPE,  PDO::PARAM_STR);
                 if (!$st->execute()) throw new Exception("Errore generazione chiave di attivazione", 500);
-
+                
                 $this->sendActivationMail($user->uid);
                 
-
                 // If we arrive here, it means that no exception was thrown
                 $this->pdo->commit();
-                return $this->login($user->email, $original_password);
+                $token = $this->login($user->email, $original_password);
+                return $token;
 
             } catch (Exception $e) {
                 $this->pdo->rollback();
@@ -244,7 +247,7 @@ require_once __DIR__ . '/../emails/email.class.php';
             if($activation->scope !== self::ACTIVATION_SCOPE ) {throw new Exception("la chiave fornita non e' adatta per l'attivazione dell'account", 400); return;}
 
             $this->pdo->query($sql = str_replace(':uid', $activation->uid,  self::Q_USER_SET_ACTIVE));
-            $this->pdo->query($sql = str_replace('akey', $activation->aKey, self::Q_SET_ACTIVATION_DATE));
+            $this->pdo->query($sql = str_replace(':akey', $activation->aKey, self::Q_SET_ACTIVATION_DATE));
 
             return true;
         }
