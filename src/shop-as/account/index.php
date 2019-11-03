@@ -3,6 +3,8 @@
 // Require composer autoloader
 require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../controllers/account.controller.php';
+require_once __DIR__ . '/../controllers/account-activation.controller.php';
+require_once __DIR__ . '/../controllers/password.controller.php';
 require_once __DIR__ . '/../controllers/authorization.controller.php';
 
 
@@ -32,7 +34,6 @@ $router->post('/login', function() {
  * registra un nuovo utente e ritorna il token di login
  */
 $router->post('/register', function() {
-    // header('Content-Type: application/json');
     $body = json_decode(file_get_contents('php://input'));
 
     try {
@@ -50,10 +51,28 @@ $router->post('/register', function() {
 /**
  * attiva l'account
  */
-$router->get('/activate/(.*)', function ($key) {
+$router->get('/resend-activation/(.*)', function ($email) {
+    header('Content-Type: application/json');
     try {
-        $account = new AccountController();
-        echo $account->activate($key);
+        $account = new AccountActivationController();
+        echo json_encode($account->resendActivationMail($email));
+    } catch (\Exception $err) {
+        header($_SERVER['SERVER_PROTOCOL'] . ' ' . $err->getCode() . ' ' . $err->getMessage(), true, $err->getCode());
+    }
+    $account->pdo = null;
+});
+
+
+
+
+/**
+ * attiva l'account
+ */
+$router->get('/activate/(.*)', function ($key) {
+    header('Content-Type: application/json');
+    try {
+        $account = new AccountActivationController();
+        echo json_encode($account->activate($key));
     } catch (\Exception $err) {
         header($_SERVER['SERVER_PROTOCOL'] . ' ' . $err->getCode() . ' ' . $err->getMessage(), true, $err->getCode());
     }
@@ -70,11 +89,12 @@ $router->get('/activate/(.*)', function ($key) {
  * permette di creare una chiave provvisoria per il successivo ripristino
  */
 $router->post('/password/recover', function () {
+    header('Content-Type: application/json');
     $body = json_decode(file_get_contents('php://input'));
 
     try {
         $password = new PasswordController();
-        echo $password->recover($body->email);
+        echo json_encode($password->recover($body->email));
     } catch (\Exception $err) {
         header($_SERVER['SERVER_PROTOCOL'] . ' ' . $err->getCode() . ' ' . $err->getMessage(), true, $err->getCode());
     }
@@ -89,15 +109,16 @@ $router->post('/password/recover', function () {
  * RESTORE PASSWORD - INIT
  */
 $router->post('/password/restore/init', function () {
-    // $body = json_decode(file_get_contents('php://input'));
+    header('Content-Type: application/json');
+    $body = json_decode(file_get_contents('php://input'));
 
-    // try {
-    //     $ctrl = new PasswordController();
-    //     echo $ctrl->initRestore($body->key);
-    // } catch (\Exception $err) {
-    //     header($_SERVER['SERVER_PROTOCOL'] . ' ' . $err->getCode() . ' ' . $err->getMessage(), true, $err->getCode());
-    // }
-    // $ctrl->pdo = null;
+    try {
+        $password = new PasswordController();
+        echo json_encode($password->restore_init($body->key));
+    } catch (\Exception $err) {
+        header($_SERVER['SERVER_PROTOCOL'] . ' ' . $err->getCode() . ' ' . $err->getMessage(), true, $err->getCode());
+    }
+    $password->pdo = null;
 });
 
 
@@ -109,15 +130,16 @@ $router->post('/password/restore/init', function () {
  * RESTORE PASSWORD - change password
  */
 $router->post('/password/restore/set', function () {
-    // $body = json_decode(file_get_contents('php://input'));
+    header('Content-Type: application/json');
+    $body = json_decode(file_get_contents('php://input'));
 
-    // try {
-    //     $ctrl = new PasswordController();
-    //     echo $ctrl->restore($body->key, $body->password);
-    // } catch (\Exception $err) {
-    //     header($_SERVER['SERVER_PROTOCOL'] . ' ' . $err->getCode() . ' ' . $err->getMessage(), true, $err->getCode());
-    // }
-    // $ctrl->pdo = null;
+    try {
+        $password = new PasswordController();
+        echo json_encode($password->restore($body->key, $body->password));
+    } catch (\Exception $err) {
+        header($_SERVER['SERVER_PROTOCOL'] . ' ' . $err->getCode() . ' ' . $err->getMessage(), true, $err->getCode());
+    }
+    $password->pdo = null;
 });
 
 

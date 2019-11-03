@@ -22,8 +22,6 @@ require_once __DIR__ . '/../emails/email.class.php';
         const Q_ACTIVATION_KEY_INSERT = "INSERT INTO activations (uid, activationKey, scope) VALUES ( :uid, :activation_key, :scope )";
         const QF_USER_ACTIVATION_KEY = __DIR__ . "/../queries/users_select_activation_key.sql";
         const QF_USER_ACTIVATION_DATA = __DIR__ . "/../queries/users_select_activation_data.sql";
-        const Q_USER_SET_ACTIVE = "UPDATE users SET active = 1 WHERE uid = :uid";
-        const Q_SET_ACTIVATION_DATE = "UPDATE activations SET activationDate = CURRENT_TIMESTAMP WHERE activationKey = :akey";
         
         const EF_ACTIVATION_EMAIL = __DIR__ . "/../emails/user-activation-email.html";
         const ACTIVATION_KEY_LENGTH = 64;
@@ -133,11 +131,17 @@ require_once __DIR__ . '/../emails/email.class.php';
             $original_password  =   $user->password ;
             $user->password     =   password_hash( $user->password, PASSWORD_DEFAULT);
             $user->uid          =   md5( $user->email . microtime());
-            $activation_key     =   StringTool::getRandomString(self::ACTIVATION_KEY_LENGTH);
             // $user->username     =   trim(           (strtolower($user->username)) ) ;
             // $user->firstName    =   trim( ucfirst(  (strtolower($user->firstName)) ) ) ; 
             // $user->familyName   =   trim( ucfirst(  (strtolower($user->familyName)) ) ) ; 
-  
+
+
+            do {
+                $activation_key = StringTool::getRandomString(self::ACTIVATION_KEY_LENGTH);
+                $st = $this->pdo->query("SELECT activationKey FROM activations WHERE activationKey = '$activation_key'");
+            } while ($st->rowCount() > 0);
+
+
            
             try {
                 // First of all, let's begin a transaction
@@ -229,32 +233,9 @@ require_once __DIR__ . '/../emails/email.class.php';
 
 
 
-        /**
-         * attiva l'utente
-         */
-        public function activate($key)
-        {
-            $key = trim($key);
-            if(strlen(strlen($key) != self::ACTIVATION_KEY_LENGTH)) throw new Exception("invalid activation link", 400);
-
-            $sql = file_get_contents(self::QF_USER_ACTIVATION_DATA);
-            $st = $this->pdo->prepare($sql);
-            $st->bindParam(":key", $key, PDO::PARAM_STR);
-            $st->execute();
-    
-            if(!$activation = $st->fetch()) {throw new Exception("chiave di attivazione inesistente", 400); return;}
-            if($activation->active == 1 ) {throw new Exception("utente gia' attivo", 400); return;}
-            if($activation->scope !== self::ACTIVATION_SCOPE ) {throw new Exception("la chiave fornita non e' adatta per l'attivazione dell'account", 400); return;}
-
-            $this->pdo->query($sql = str_replace(':uid', $activation->uid,  self::Q_USER_SET_ACTIVE));
-            $this->pdo->query($sql = str_replace(':akey', $activation->aKey, self::Q_SET_ACTIVATION_DATE));
-
-            return true;
-        }
-
 
 
 
 	}//chiude la classe
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- ?>
+?>

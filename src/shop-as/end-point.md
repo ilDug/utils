@@ -1,4 +1,4 @@
-# ACCESS
+# ACCOUNT
 permette di loggarsi o registrarsi 
 
  
@@ -24,6 +24,12 @@ POST:
         token: string || false
         in più manda una mail con la chiave di attivazione
 
+## /account/resend-activation/:email
+GET:
+    @param :email = email usata per registrarsi
+    @response boolean or exception
+    
+
 ## /account/activate/:key
 GET:
     @param :key = chiave di attivazione
@@ -36,7 +42,7 @@ POST:
         email: string
     }
 
-    @response  void (manda la mail)
+    @response  boolean (manda la mail)
 
 ## /account/restore/init
 POST:

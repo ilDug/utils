@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/account.controller.php';
+require_once __DIR__ . '/../lib/date.utility.php';
 
 /*
 * classe per la gestione degli accessi e degli utenti
@@ -16,9 +17,11 @@ class PasswordController extends AccountController
     const RESTORE_KEY_LENGTH = 64;
     const RECOVER_SCOPE = "recover_password";
     const Q_RECOVER_KEY_CREATE = "INSERT INTO activations (uid, activationKey, scope) VALUES ( :uid, :recoverKey, :scope )";
-
+    const Q_RESTORE_DATA_SELECT = "SELECT * FROM activations WHERE activationKey = :key";
     const EF_RECOVER_EMAIL = __DIR__ . "/../emails/recover-password-email.html";
-    /**
+    const Q_RESTORE_SET_PASSWORD = "UPDATE users SET password = :password WHERE uid = :uid";
+    const Q_RESTORE_UPDATE_ACTIVATION_KEY = "UPDATE activations SET activationDate = CURRENT_TIMESTAMP WHERE activationKey = :key";
+     /**
      * RECOVER PASSWORD
      * genera una chiave di attivazione che permette di ripristinare la password
      */
@@ -27,18 +30,23 @@ class PasswordController extends AccountController
         /** EMAIL */
         if(!$email){throw new Exception("l'email assente", 400); return;}
         $email = strtolower(trim($email));
-        if( !filter_var($email, FILTER_VALIDATE_EMAIL) ) { throw new Exception("l'email non e' nella forma corretta", 400); return; }
+        if( !filter_var($email, FILTER_VALIDATE_EMAIL) ) throw new Exception("l'email non e' nella forma corretta", 400); 
 
         $st = $this->pdo->prepare(self::Q_SELECT_RECOVER_EMAIL);
         $st->bindParam(':email', $email, PDO::PARAM_STR);
         $st->execute();
         if(!$uid = $st->fetch()->uid) {throw new Exception("indirizzo email non presente nel database", 400); return;}
         
-        $recoverKey =  StringTool::getRandomString(self::RESTORE_KEY_LENGTH);
+        /** controlla che non esista una chiave nel database  */
+        do {
+            $recoverKey =  StringTool::getRandomString(self::RESTORE_KEY_LENGTH);
+            $st = $this->pdo->query("SELECT activationKey FROM activations WHERE activationKey = '$recoverKey'");
+        } while ( $st->rowCount() > 0 );
+
         $st = $this->pdo->prepare(self::Q_RECOVER_KEY_CREATE);
         $st->bindParam(':uid',          $uid,                   PDO::PARAM_STR);
         $st->bindParam(':recoverKey',   $recoverKey,            PDO::PARAM_STR);
-        $st->bindParam(':scope',        self::RECOVER_SCOPE,    PDO::PARAM_STR);
+        $st->bindValue(':scope',        self::RECOVER_SCOPE,    PDO::PARAM_STR);
         if(!$st->execute()) {throw new Exception("Errore creazione chiave di recupero", 500); return;};
 
         /** crea una mail */
@@ -67,21 +75,30 @@ class PasswordController extends AccountController
      * esegue i controlli per la reimpostazione della password utente
      * @return uid
      */
-    public function initRestore($key)
+    public function restore_init($key)
     {
-        // $key = trim($key);
-        // if (strlen(strlen($key) != 64)) throw new Exception("invalid recover link", 400);
+        if(!$key) throw new Exception("chiave assente", 400);
+        $key = trim($key);
+        if (strlen(strlen($key) != self::RESTORE_KEY_LENGTH)) throw new Exception("invalid recover link", 400);
 
-        // $st = $this->pdo->prepare(Q_USER_RESTORE_DATA);
-        // $st->bindParam(':key', $key, PDO::PARAM_STR);
-        // $st->execute();
-        // $d = $st->fetch();
+        $st = $this->pdo->prepare(self::Q_RESTORE_DATA_SELECT);
+        $st->bindParam(':key', $key, PDO::PARAM_STR);
+        $st->execute();
+        $d = $st->fetch();
 
-        // if( $st->rowCount() == 0) {throw new Exception("chiave di recupero inesistente", 400); return;}
-        // if( $d->scope !== "recover_password" ) {throw new Exception("la chiave fornita non e' adatta per il recupero della password", 400); return;}
-        // if( $d->activationDate ) {throw new Exception("la chiave fornita e' gia' stata utilizzata", 400); return;}
-        // if( DateParser::mysqlToTimestampJs($d->generationKeyDate) + 1000 * 60 * 60 < time()*1000  ) {throw new Exception("la chiave fornita e' scaduta", 400); return;}
-        // return $d->uid ? $d->uid : false;
+        if( $st->rowCount() == 0) 
+            throw new Exception("chiave di recupero inesistente", 400); 
+
+        if( $d->scope !== self::RECOVER_SCOPE ) 
+            throw new Exception("la chiave fornita non e' adatta per il recupero della password", 400); 
+
+        if( $d->activationDate ) 
+            throw new Exception("la chiave fornita e' gia' stata utilizzata", 400); 
+
+        if( DateParser::mysqlToTimestampJs($d->generationKeyDate) + 1000 * 60 * 60 < time()*1000  ) 
+            throw new Exception("la chiave fornita e' scaduta", 400); 
+
+        return $d->uid ? $d->uid : false;
     }
 
 
@@ -93,21 +110,35 @@ class PasswordController extends AccountController
      */
     public function restore($key, $newpassword)
     {
-        // /** esegue di nuovo i controlli per la chiave */
-        // $uid = $this->initRestorePassword($key);
-        // if( $uid  == false )return ;
+        /** esegue di nuovo i controlli per la chiave */
+        $uid = $this->restore_init($key);
 
-        // $newpassword = password_hash($newpassword, PASSWORD_DEFAULT);
+        if( $uid  == false )throw new Exception("identificativo utente non trovato", 500) ;
 
-        // $st = $this->pdo->prepare("UPDATE users SET password = :password WHERE uid = :uid");
-        // $st->bindParam(':password', $newpassword, PDO::PARAM_STR);
-        // $st->bindParam(':uid', $uid, PDO::PARAM_STR);
-        // if (!$st->execute() || $st->rowCount() < 1) return false;
+        if(!$newpassword) throw new Exception("nuova password assente", 400);
+        $newpassword = password_hash($newpassword, PASSWORD_DEFAULT);
 
-        // $st = $this->pdo->prepare("UPDATE activations SET activationDate = CURRENT_TIMESTAMP WHERE activationKey = :key");
-        // $st->bindParam(':key', $key, PDO::PARAM_STR);
-        // if (!$st->execute() || $st->rowCount() < 1 ) return false;
-        // return true;
+        try {
+            $this->pdo->beginTransaction();
+
+            $st = $this->pdo->prepare(self::Q_RESTORE_SET_PASSWORD);
+            $st->bindParam(':password', $newpassword, PDO::PARAM_STR);
+            $st->bindParam(':uid', $uid, PDO::PARAM_STR);
+            if (!$st->execute() || $st->rowCount() < 1) throw new Exception("errore impostazione uova password ". json_encode($st->errorInfo()), 500);
+
+            $st = $this->pdo->prepare(self::Q_RESTORE_UPDATE_ACTIVATION_KEY);
+            $st->bindParam(':key', $key, PDO::PARAM_STR);
+            if (!$st->execute() || $st->rowCount() < 1 ) throw new Exception("errore aggiornamento data chiave " . json_encode($st->errorInfo()), 500);
+            
+            $this->pdo->commit();
+            return true;
+        } catch (\Throwable $th) {
+            $this->pdo->rollback();
+            throw $th;
+            return false;
+        }
+
+
     }
 
 }//chiude la classe
