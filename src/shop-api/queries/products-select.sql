@@ -23,6 +23,6 @@ FROM
         LEFT JOIN
     categories c ON pc.categoryId = c.name
 WHERE
-    p.hidden <= :hidden
+    p.hidden <= :hidden AND p.productId LIKE :productId
 GROUP BY p.productId
 ORDER BY p.identifier

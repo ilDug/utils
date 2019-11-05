@@ -19,14 +19,14 @@ $router = new \Bramus\Router\Router();
 
 
 
-$router->get('/(\w+)', function($productId) {
+$router->get('/(\w+)', function($name) {
     try {
-        $products = new ProductsController();
-        echo json_encode( $products->findOne($productId, 1) );
+        $categories = new CategoriesController();
+        echo json_encode( $categories->read($name) );
     } catch (\Exception $err) {
         header($_SERVER['SERVER_PROTOCOL'] . ' ' . $err->getCode() . ' ' . $err->getMessage());
     }
-    $products->pdo = null;
+    $categories->pdo = null;
 });
 
 
@@ -35,26 +35,26 @@ $router->get('/(\w+)', function($productId) {
 
 $router->get('/', function() {
     try {
-        $products = new ProductsController();
-        echo json_encode( $products->read(1) );
+        $categories = new CategoriesController();
+        echo json_encode( $categories->read() );
     } catch (\Exception $err) {
         header($_SERVER['SERVER_PROTOCOL'] . ' ' . $err->getCode() . ' ' . $err->getMessage());
     }
-    $products->pdo = null;
+    $categories->pdo = null;
 });
 
 
 
 
 
-$router->delete('/(\w+)', function($productId) {
+$router->delete('/(\w+)', function($name) {
     try {
-        $products = new ProductsController();
-        echo json_encode( $products->remove($productId) );
+        $categories = new CategoriesController();
+        echo json_encode( $categories->remove($name) );
     } catch (\Exception $err) {
         header($_SERVER['SERVER_PROTOCOL'] . ' ' . $err->getCode() . ' ' . $err->getMessage());
     }
-    $products->pdo = null;
+    $categories->pdo = null;
 });
 
 
@@ -62,56 +62,28 @@ $router->delete('/(\w+)', function($productId) {
 
 
 $router->post('/', function() {
-    $product = json_decode(file_get_contents('php://input'));
+    $category = json_decode(file_get_contents('php://input'));
     try {
-        $products = new ProductsController();
-        echo json_encode( $products->add($product) );
+        $categories = new CategoriesController();
+        echo json_encode( $categories->add($category) );
     } catch (\Exception $err) {
         header($_SERVER['SERVER_PROTOCOL'] . ' ' . $err->getCode() . ' ' . $err->getMessage());
     }
-    $products->pdo = null;
+    $categories->pdo = null;
 });
 
 
 
 
-$router->put('/hide/(\w+)', function($productId) {
-    $product = json_decode(file_get_contents('php://input'));
+$router->put('/(\w+)', function($old_name) {
+    $category = json_decode(file_get_contents('php://input'));
     try {
-        $products = new ProductsController();
-        echo json_encode( $products->hide($productId) );
+        $categories = new CategoriesController();
+        echo json_encode( $categories->edit($category, $old_name) );
     } catch (\Exception $err) {
         header($_SERVER['SERVER_PROTOCOL'] . ' ' . $err->getCode() . ' ' . $err->getMessage());
     }
-    $products->pdo = null;
-});
-
-
-
-
-$router->put('/show/(\w+)', function($productId) {
-    $product = json_decode(file_get_contents('php://input'));
-    try {
-        $products = new ProductsController();
-        echo json_encode( $products->show($productId) );
-    } catch (\Exception $err) {
-        header($_SERVER['SERVER_PROTOCOL'] . ' ' . $err->getCode() . ' ' . $err->getMessage());
-    }
-    $products->pdo = null;
-});
-
-
-
-
-$router->put('/(\w+)', function($productId) {
-    $product = json_decode(file_get_contents('php://input'));
-    try {
-        $products = new ProductsController();
-        echo json_encode( $products->edit($product) );
-    } catch (\Exception $err) {
-        header($_SERVER['SERVER_PROTOCOL'] . ' ' . $err->getCode() . ' ' . $err->getMessage());
-    }
-    $products->pdo = null;
+    $categories->pdo = null;
 });
      
 

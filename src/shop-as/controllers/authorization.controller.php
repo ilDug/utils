@@ -25,48 +25,48 @@ class AuthorizationController extends AuthenticationController
 
 
     
-    /**
-     * assegna il permission all'utente
-     */
-    public function assignAuthorization($permission, $uid){
-        if(!isset($permission) || !isset($uid)) {throw new Exception("argomenti non validi", 400); return false;}
-        if(!$this->authenticated) {throw new Exception("amministratore non autenticato", 401); return false;}
+    // /**
+    //  * assegna il permission all'utente
+    //  */
+    // public function assignAuthorization($permission, $uid){
+    //     if(!isset($permission) || !isset($uid)) {throw new Exception("argomenti non validi", 400); return false;}
+    //     if(!$this->authenticated) {throw new Exception("amministratore non autenticato", 401); return false;}
 
-        if(!in_array( "assign_authorizations", $this->claims->authorizations )) {throw new Exception("amministratore non autorizzato", 401); return false;}
+    //     if(!in_array( "assign_authorizations", $this->claims->authorizations )) {throw new Exception("amministratore non autorizzato", 401); return false;}
         
-        $sql = file_get_contents(__DIR__ . "/../queries/user_assign_authorization.sql");
-        $st = $this->pdo->prepare($sql);
-        $st->bindParam(':uid', $uid, PDO::PARAM_STR );
-        $st->bindParam(':authorization', $permission, PDO::PARAM_STR );
-        return $st->execute();
-    }
+    //     $sql = file_get_contents(__DIR__ . "/../queries/user_assign_authorization.sql");
+    //     $st = $this->pdo->prepare($sql);
+    //     $st->bindParam(':uid', $uid, PDO::PARAM_STR );
+    //     $st->bindParam(':authorization', $permission, PDO::PARAM_STR );
+    //     return $st->execute();
+    // }
 
 
-    /**
-     * assegna il permission all'utente
-     */
-    public function denyAuthorization($permission, $uid){
-        if(!isset($permission) || !isset($uid)) {throw new Exception("argomenti non validi", 400); return false;}
-        if(!$this->authenticated) {throw new Exception("amministratore non autenticato", 401); return false;}
+    // /**
+    //  * assegna il permission all'utente
+    //  */
+    // public function denyAuthorization($permission, $uid){
+    //     if(!isset($permission) || !isset($uid)) {throw new Exception("argomenti non validi", 400); return false;}
+    //     if(!$this->authenticated) {throw new Exception("amministratore non autenticato", 401); return false;}
 
-        if(!in_array( "assign_authorizations", $this->claims->authorizations )) {throw new Exception("amministratore non autorizzato", 401); return false;}
+    //     if(!in_array( "assign_authorizations", $this->claims->authorizations )) {throw new Exception("amministratore non autorizzato", 401); return false;}
         
-        $sql = file_get_contents(__DIR__ . "/../queries/user_deny_authorization.sql");
-        $st = $this->pdo->prepare($sql);
-        $st->bindParam(':uid', $uid, PDO::PARAM_STR );
-        $st->bindParam(':authorization', $permission, PDO::PARAM_STR );
-        return $st->execute();
-    }
+    //     $sql = file_get_contents(__DIR__ . "/../queries/user_deny_authorization.sql");
+    //     $st = $this->pdo->prepare($sql);
+    //     $st->bindParam(':uid', $uid, PDO::PARAM_STR );
+    //     $st->bindParam(':authorization', $permission, PDO::PARAM_STR );
+    //     return $st->execute();
+    // }
 
 
 
 
-    public function authList(){
-        foreach ($this->pdo->query("SELECT * FROM ekusers.authorizations") as $auth) {
-            $list[$auth->authorization] = $auth->description;
-        }
-        return $list;
-    }
+    // public function authList(){
+    //     foreach ($this->pdo->query("SELECT * FROM ekusers.authorizations") as $auth) {
+    //         $list[$auth->authorization] = $auth->description;
+    //     }
+    //     return $list;
+    // }
 
 
 }//chiude la classe

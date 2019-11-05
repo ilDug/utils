@@ -1,7 +1,7 @@
 <?php
 namespace DAG;
 
-const AUTH_SERVER_URL = "https://as.xxx.lan/";
+const AUTH_SERVER_URL = "https://shop.dag.lan/as/";
 const CA_PATH = __DIR__ . "/keys/xxCA.pem";
 
 
@@ -21,19 +21,19 @@ class Auth{
         $curl = curl_init();
         
         curl_setopt_array($curl, array(
-        CURLOPT_URL => AUTH_SERVER_URL . "authentication/token/claims",
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_ENCODING => "",
-        CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT => 30,
-        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        CURLOPT_CUSTOMREQUEST => "GET",
-        CURLOPT_POSTFIELDS => "",
-        CURLOPT_CAINFO => CA_PATH,
-        CURLOPT_CAPATH => CA_PATH,
-        CURLOPT_SSL_VERIFYPEER => 1,
-        CURLOPT_SSL_VERIFYHOST => 2,
-        CURLOPT_HTTPHEADER => array(
+            CURLOPT_URL => AUTH_SERVER_URL . "authentication/token/claims",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "GET",
+            CURLOPT_POSTFIELDS => "",
+            CURLOPT_CAINFO => CA_PATH,
+            CURLOPT_CAPATH => CA_PATH,
+            CURLOPT_SSL_VERIFYPEER => 1,
+            CURLOPT_SSL_VERIFYHOST => 2,
+            CURLOPT_HTTPHEADER => array(
                 "Authorization: " . $this->auth_header
             ),
         ));
@@ -59,30 +59,6 @@ class Auth{
             else return $x->authenticated;
         }
     }
-
-
-
-
-
-
-
-
-
-    // public function authorize($permission, $throw  = false){
-    //     if(!$permission){
-    //         if($throw) { throw new Exception("Argomento mancante nella richiesta di authorizzazione" , 401); die(); }
-    //         else return false;
-    //     }
-
-    //     if(!$this->authenticate()){
-    //         if($throw) { throw new Exception("Utente non autenticato. Accedere prima di richiedere autorizzazione" , 401); die(); }
-    //         else return false;
-    //     }
-    //     echo $permission;
-    //     return in_array($permission, $this->claims);
-    // }
-
-
 
 
 }//chiude la classe

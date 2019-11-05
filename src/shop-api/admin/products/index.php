@@ -22,7 +22,7 @@ $router = new \Bramus\Router\Router();
 $router->get('/(\w+)', function($productId) {
     try {
         $products = new ProductsController();
-        echo json_encode( $products->findOne($productId, 1) );
+        echo json_encode( $products->read($productId, 1) );
     } catch (\Exception $err) {
         header($_SERVER['SERVER_PROTOCOL'] . ' ' . $err->getCode() . ' ' . $err->getMessage());
     }
@@ -36,7 +36,7 @@ $router->get('/(\w+)', function($productId) {
 $router->get('/', function() {
     try {
         $products = new ProductsController();
-        echo json_encode( $products->read(1) );
+        echo json_encode( $products->read(false, 1) );
     } catch (\Exception $err) {
         header($_SERVER['SERVER_PROTOCOL'] . ' ' . $err->getCode() . ' ' . $err->getMessage());
     }

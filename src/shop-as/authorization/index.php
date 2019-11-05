@@ -12,7 +12,7 @@ $router = new \Bramus\Router\Router();
 
 
 /**
- * login con username e password
+ * verifica che il token abbia un prmesso
  */
 $router->get('/check/(\w+)', function($permission) {
     $auth_header = ( apache_request_headers()['Authorization'] );
@@ -28,58 +28,58 @@ $router->get('/check/(\w+)', function($permission) {
 });
 
 
-$router->get('/list', function() {
-    $auth_header = ( apache_request_headers()['Authorization'] );
-    $auth =  new AuthorizationController() ;
-    if($auth->authenticate($auth_header) !== true) { echo json_encode(false); die(); }
+// $router->get('/list', function() {
+//     $auth_header = ( apache_request_headers()['Authorization'] );
+//     $auth =  new AuthorizationController() ;
+//     if($auth->authenticate($auth_header) !== true) { echo json_encode(false); die(); }
 
-    try {
-       echo json_encode( $auth->authList() );
-       $auth->pdo = null;
-    } catch (\Exception $err) {
-       header($_SERVER['SERVER_PROTOCOL'] . ' ' . $err->getCode() . ' ' . $err->getMessage(), true, $err->getCode());
-    }
-});
-
-
-
-
-$router->post('/grant', function() {
-    $auth_header = ( apache_request_headers()['Authorization'] );
-    $auth = new AuthorizationController();
-    $auth->authenticate($auth_header);
-
-    $body = json_decode(file_get_contents('php://input'));
-    $permission = $body->permission;
-    $uid = $body->uid;
-
-    try {
-       echo json_encode( $auth->assignAuthorization($permission, $uid) );
-       $auth->pdo = null;
-    } catch (\Exception $err) {
-       header($_SERVER['SERVER_PROTOCOL'] . ' ' . $err->getCode() . ' ' . $err->getMessage(), true, $err->getCode());
-    }
-});
+//     try {
+//        echo json_encode( $auth->authList() );
+//        $auth->pdo = null;
+//     } catch (\Exception $err) {
+//        header($_SERVER['SERVER_PROTOCOL'] . ' ' . $err->getCode() . ' ' . $err->getMessage(), true, $err->getCode());
+//     }
+// });
 
 
 
 
-$router->post('/deny', function() {
-    $auth_header = ( apache_request_headers()['Authorization'] );
-    $auth = new AuthorizationController();
-    $auth->authenticate($auth_header);
+// $router->post('/grant', function() {
+//     $auth_header = ( apache_request_headers()['Authorization'] );
+//     $auth = new AuthorizationController();
+//     $auth->authenticate($auth_header);
+
+//     $body = json_decode(file_get_contents('php://input'));
+//     $permission = $body->permission;
+//     $uid = $body->uid;
+
+//     try {
+//        echo json_encode( $auth->assignAuthorization($permission, $uid) );
+//        $auth->pdo = null;
+//     } catch (\Exception $err) {
+//        header($_SERVER['SERVER_PROTOCOL'] . ' ' . $err->getCode() . ' ' . $err->getMessage(), true, $err->getCode());
+//     }
+// });
+
+
+
+
+// $router->post('/deny', function() {
+//     $auth_header = ( apache_request_headers()['Authorization'] );
+//     $auth = new AuthorizationController();
+//     $auth->authenticate($auth_header);
     
-    $body = json_decode(file_get_contents('php://input'));
-    $permission = $body->permission;
-    $uid = $body->uid;
+//     $body = json_decode(file_get_contents('php://input'));
+//     $permission = $body->permission;
+//     $uid = $body->uid;
 
-    try {
-       echo json_encode( $auth->denyAuthorization($permission, $uid) );
-       $auth->pdo = null;
-    } catch (\Exception $err) {
-       header($_SERVER['SERVER_PROTOCOL'] . ' ' . $err->getCode() . ' ' . $err->getMessage(), true, $err->getCode());
-    }
-});
+//     try {
+//        echo json_encode( $auth->denyAuthorization($permission, $uid) );
+//        $auth->pdo = null;
+//     } catch (\Exception $err) {
+//        header($_SERVER['SERVER_PROTOCOL'] . ' ' . $err->getCode() . ' ' . $err->getMessage(), true, $err->getCode());
+//     }
+// });
     
 
 

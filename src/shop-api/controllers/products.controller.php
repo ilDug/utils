@@ -11,8 +11,7 @@ class ProductsController
     
     const QF_INSERT  = __DIR__ . "/../queries/product-insert.sql";
     const QF_EDIT  = __DIR__ . "/../queries/product-edit.sql";
-    const QF_SELECT_ALL  = __DIR__ . "/../queries/products-select-all.sql";
-    const QF_SELECT_ONE  = __DIR__ . "/../queries/products-select-one.sql";
+    const Q_SELECT  = __DIR__ . "/../queries/products-select.sql";
     const Q_DELETE  = "DELETE FROM products WHERE productId = :productId";
     const Q_HIDE  = "UPDATE products SET hidden = :hidden WHERE productId = :productId";
 
@@ -26,29 +25,23 @@ class ProductsController
     
     function __construct() { $this->pdo = ShopConnection::pdo(); }
 
-    /** get whole list */
-    public function read($hidden = 0)
+
+    public function read($productId = false , $hidden = 0)
     {
-        $products = array();
-        $st = $this->pdo->prepare(self::QF_SELECT_ALL);
-        $st->bindParam(':hidden', $hidden, PDO::PARAM_INT);
-        $st->execute();
-        while($row = $st->fetch()){
-            $products[] = json_decode(($row->product)); 
-        }
-        return $products;
-    }
+        $productId = !$productId ? "%" : $productId;
 
-
-
-    public function findOne($productId , $hidden = 0)
-    {
-        $st = $this->pdo->prepare(self::QF_SELECT_ONE);
+        $st = $this->pdo->prepare(self::Q_SELECT);
         $st->bindParam(':productId',    $productId,     PDO::PARAM_STR);
         $st->bindParam(':hidden',       $hidden,        PDO::PARAM_INT);
         $st->execute();
-        $prod = $st->fetch();
-        return json_decode($prod); 
+
+
+        $products = array();
+        while($row = $st->fetch()){
+            $products[] = json_decode(($row->product)); 
+        }   
+
+        return !$productId ? $products : $products[0] ? $products[0] : null;
     }
 
 
@@ -67,10 +60,7 @@ class ProductsController
         $st->bindParam(':brand',        $product->brand,        PDO::PARAM_STR);
         $st->bindParam(':product',      $product_json,          PDO::PARAM_STR);
         if(!$res = $st->execute() ) 
-        {
             throw new Exception("Errore inserimento " . json_encode($st->errorInfo()), 1);
-            return NULL;
-        } 
         else return $product;
     }
 
@@ -94,10 +84,7 @@ class ProductsController
         $st->bindParam(':brand',        $product->brand,        PDO::PARAM_STR);
         $st->bindParam(':product',      $product_json,          PDO::PARAM_STR);
         if(!$res = $st->execute() ) 
-        {
             throw new Exception("Errore modifica " . json_encode($st->errorInfo()), 1);
-            return NULL;
-        } 
         else return $product;
     }
 
@@ -111,10 +98,7 @@ class ProductsController
         $st = $this->pdo->prepare(self::Q_DELETE);
         $st->bindParam(':productId',    $productId,    PDO::PARAM_STR);
         if(!$res = $st->execute() ) 
-        {
             throw new Exception("Errore eliminazione " . json_encode($st->errorInfo()), 1);
-            return false;
-        } 
         else return $st->rowCount();
     }
 
@@ -126,10 +110,7 @@ class ProductsController
         $st->bindParam(':productId',    $productId,     PDO::PARAM_STR);
         $st->bindParam(':hidden',       $hidden,        PDO::PARAM_INT);
         if(!$res = $st->execute() ) 
-        {
             throw new Exception("Errore oscuramento " . json_encode($st->errorInfo()), 1);
-            return false;
-        } 
         else return $res;
     }
 
