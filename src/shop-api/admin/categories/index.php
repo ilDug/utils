@@ -62,10 +62,10 @@ $router->delete('/(\w+)', function($name) {
 
 
 $router->post('/', function() {
-    $category = json_decode(file_get_contents('php://input'));
+    $body = json_decode(file_get_contents('php://input'));
     try {
         $categories = new CategoriesController();
-        echo json_encode( $categories->add($category) );
+        echo json_encode( $categories->add($body->category) );
     } catch (\Exception $err) {
         header($_SERVER['SERVER_PROTOCOL'] . ' ' . $err->getCode() . ' ' . $err->getMessage());
     }
@@ -76,10 +76,10 @@ $router->post('/', function() {
 
 
 $router->put('/(\w+)', function($old_name) {
-    $category = json_decode(file_get_contents('php://input'));
+    $body = json_decode(file_get_contents('php://input'));
     try {
         $categories = new CategoriesController();
-        echo json_encode( $categories->edit($category, $old_name) );
+        echo json_encode( $categories->edit($body->category, $old_name) );
     } catch (\Exception $err) {
         header($_SERVER['SERVER_PROTOCOL'] . ' ' . $err->getCode() . ' ' . $err->getMessage());
     }

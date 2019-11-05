@@ -1,7 +1,6 @@
 <?php
-require_once __RID__ . '/../queries/index.php';
-require_once __RID__ . '/../lib/shop.pdo.php';
-require_once __RID__ . '/../lib/utils.php';
+require_once __DIR__ . '/../lib/shop.pdo.php';
+require_once __DIR__ . '/../lib/utils.php';
 
 
 
@@ -34,13 +33,12 @@ class CategoriesController
         $st = $this->pdo->prepare(self::Q_SELECT);
         $st->bindParam(':name',    $name,     PDO::PARAM_STR);
         $st->execute();
-
+        // echo $st->debugDumpParams();
         $categories = array();
         while($row = $st->fetch()){
             $categories[] = $row; 
         }
-        
-        return !$name ? $categories : $categories[0] ? $categories[0] : null;
+        return $name == "%" ? $categories : ($categories[0] ? $categories[0] : null);
     }
 
 
@@ -51,12 +49,11 @@ class CategoriesController
     public function add($category)
     {
         if(!DAG\UTILS\checkFields($category, self::FIELDS)){ return false;}
-
         $st = $this->pdo->prepare(self::Q_INSERT);
         $st->bindParam(':name',    $category->name,    PDO::PARAM_STR);
         $st->bindParam(':title',   $category->title,   PDO::PARAM_STR);
-        if(!$res = $st->execute() )  
-            throw new Exception("Errore inserimento " . json_encode($st->errorInfo()), 1); 
+        if(!$st->execute() )  
+            throw new Exception("Errore inserimento " . json_encode($st->errorInfo()), 500); 
         else return $category;
     }
 
@@ -75,9 +72,10 @@ class CategoriesController
         $st->bindParam(':old_name',    $old_name,          PDO::PARAM_STR);
         $st->bindParam(':name',        $category->name,    PDO::PARAM_STR);
         $st->bindParam(':title',       $category->title,   PDO::PARAM_STR);
-        if(!$res = $st->execute() ) 
-            throw new Exception("Errore modifica " . json_encode($st->errorInfo()), 1);
-        else return $category;
+        if(!$st->execute() || ($st->rowCount()) < 1) 
+            throw new Exception("Errore modifica " . json_encode($st->errorInfo()), 500);
+
+        else return $this->read($category->name);
     }
 
 
@@ -90,7 +88,7 @@ class CategoriesController
         $st = $this->pdo->prepare(self::Q_DELETE);
         $st->bindParam(':name',    $cat_name,    PDO::PARAM_STR);
         if(!$res = $st->execute() ) 
-            throw new Exception("Errore eliminazione " . json_encode($st->errorInfo()), 1);
+            throw new Exception("Errore eliminazione " . json_encode($st->errorInfo()), 500);
         else return $st->rowCount();
     }
 
@@ -108,7 +106,7 @@ class CategoriesController
         $st->bindParam(':productId',    $productId,    PDO::PARAM_STR);
         $st->bindParam(':cat_name',     $cat_name,     PDO::PARAM_STR);
         if(!$res = $st->execute() ) 
-            throw new Exception("Errore assegnazione categoria " . json_encode($st->errorInfo()), 1);
+            throw new Exception("Errore assegnazione categoria " . json_encode($st->errorInfo()), 500);
         else return $st->rowCount() > 0;
     }
 
@@ -126,7 +124,7 @@ class CategoriesController
         $st->bindParam(':productId',    $productId,        PDO::PARAM_STR);
         $st->bindParam(':cat_name',     $cat_name,         PDO::PARAM_STR);
         if(!$res = $st->execute() ) 
-            throw new Exception("Errore rimozione categoria da prodotto " . json_encode($st->errorInfo()), 1);
+            throw new Exception("Errore rimozione categoria da prodotto " . json_encode($st->errorInfo()), 500);
         else return $st->rowCount() > 0;    
     }
 

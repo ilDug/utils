@@ -1,5 +1,4 @@
 <?php
-require_once __RID__ . '/../queries/index.php';
 require_once __RID__ . '/../lib/shop.pdo.php';
 require_once __RID__ . '/../lib/utils.php';
 
@@ -41,7 +40,7 @@ class ProductsController
             $products[] = json_decode(($row->product)); 
         }   
 
-        return !$productId ? $products : $products[0] ? $products[0] : null;
+        return $productId == "%" ? $products : ($products[0] ? $products[0] : null);
     }
 
 

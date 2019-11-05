@@ -2,7 +2,7 @@
 namespace DAG;
 
 const AUTH_SERVER_URL = "https://shop.dag.lan/as/";
-const CA_PATH = __DIR__ . "/keys/xxCA.pem";
+const CA_PATH = __DIR__ . "/keys/dagCA.pem";
 
 
 class Auth{

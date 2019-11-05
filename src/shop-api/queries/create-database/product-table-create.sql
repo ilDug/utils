@@ -1,3 +1,6 @@
+DROP TABLE IF EXISTS shop.products;
+
+
 CREATE TABLE IF NOT EXISTS `shop`.`products` (
   `productId` VARCHAR(32) NOT NULL,
   `identifier` VARCHAR(255) NOT NULL,

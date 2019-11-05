@@ -19,7 +19,7 @@ class ShopConnection
     const DBNAME = "shop";
     const DBHOST = "localhost";
     const DBUSER = "dagshopuser";
-    const DBPASS = "";
+    const DBPASS = "do4ng9sb45ig0sb38glqmxb";
 
     const PDO_DSN = 'mysql:host='.self::DBHOST.';dbname='.self::DBNAME.';port=3306;charset=utf8mb4';
 
