@@ -67,6 +67,7 @@ export class Product{
     */
     public model: string = null;
 
+
     /** ATTRIBUTI
      * dimensions * color * size * wheight * ecc...
      */

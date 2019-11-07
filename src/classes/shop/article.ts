@@ -14,7 +14,6 @@ export class Article extends Product{
 
         /** assegna le proprietà */
         Object.assign(this, a);
-
     }
 
     /** ID del database */

@@ -21,11 +21,16 @@ export class Order{
         Object.assign(this, o);
     }
 
+
+/***********************************************************************+ */
+
     /** ID del database */
     public orderId: string = null;
 
     /** codie utente  */
     public uid: string = null;
+
+/***********************************************************************+ */
 
     /** elenco di OrderItems */
     public articles : Article[] = [];

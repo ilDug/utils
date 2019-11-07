@@ -17,6 +17,6 @@ CREATE TABLE IF NOT EXISTS `shop`.`product_categories` (
     ON DELETE CASCADE
     ON UPDATE CASCADE
 )
-ENGINE = InnoDB
+ENGINE = InnoDB DEFAULT CHARSET=utf8mb4;
 
 

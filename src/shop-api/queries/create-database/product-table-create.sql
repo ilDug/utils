@@ -10,4 +10,4 @@ CREATE TABLE IF NOT EXISTS `shop`.`products` (
   `product` JSON NULL DEFAULT NULL,
   PRIMARY KEY (`productId`)
 )
-ENGINE = InnoDB
+ENGINE = InnoDB DEFAULT CHARSET=utf8mb4;
