@@ -1,6 +1,8 @@
 <?php
 require_once __DIR__ . "/account.controller.php";
 
+use \DAG\Mail;
+
 class AccountActivationController extends AccountController
 {
 
@@ -9,7 +11,10 @@ class AccountActivationController extends AccountController
     const Q_SET_ACTIVATION_DATE = "UPDATE activations SET activationDate = CURRENT_TIMESTAMP WHERE activationKey = :akey";
 
 
-    public function __construct(){ parent::__construct();}
+    public function __construct()
+    {
+        parent::__construct();
+    }
 
 
 
@@ -24,15 +29,15 @@ class AccountActivationController extends AccountController
         /** EMAIL */
         $email = strtolower(trim($email));
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) throw new Exception("l'email non e' nella forma corretta", 400);
-        
+
         $sql = file_get_contents(self::QF_RESEND_ACTIVATION_SEARCH);
         $st = $this->pdo->prepare($sql);
         $st->bindParam(':email', $email, PDO::PARAM_STR);
         $st->bindValue(':scope', self::ACTIVATION_SCOPE, PDO::PARAM_STR);
-        if (!$st->execute())  throw new Exception("impossibile recuperare il codice di attivazione", 500); 
-        if (!$data = $st->fetch())  throw new Exception("email non trovata, esegui prima la registrazione", 400); 
+        if (!$st->execute())  throw new Exception("impossibile recuperare il codice di attivazione", 500);
+        if (!$data = $st->fetch())  throw new Exception("email non trovata, esegui prima la registrazione", 400);
 
-        if($data->active == 1) throw new Exception("utente gia' attivo", 400);
+        if ($data->active == 1) throw new Exception("utente gia' attivo", 400);
 
 
         /** crea una mail */
@@ -40,11 +45,11 @@ class AccountActivationController extends AccountController
         $body = str_replace(["%ACTIVATION_KEY%"], [$data->activationKey], $body);
 
         try {
-            $mail = new DagMail("hello");
+            $mail = new Mail();
             return $mail
                 ->setSubject("Attivazione Account")
                 ->setBody($body)
-                ->addRecipient($email)
+                ->addReceiver($email)
                 ->send();
         } catch (\Exception $e) {
             throw $e;
@@ -85,22 +90,18 @@ class AccountActivationController extends AccountController
 
             $st = $this->pdo->prepare(self::Q_USER_SET_ACTIVE);
             $st->bindParam(':uid', $activation->uid, PDO::PARAM_STR);
-            if(!$st->execute()) throw new Exception("errore attivazione account", 500);
+            if (!$st->execute()) throw new Exception("errore attivazione account", 500);
 
             $st = $this->pdo->prepare(self::Q_SET_ACTIVATION_DATE);
             $st->bindParam(':akey', $activation->aKey, PDO::PARAM_STR);
             if (!$st->execute()) throw new Exception("errore attivazione account DATE ERROR", 500);
-           
+
             $this->pdo->commit();
             return true;
-
         } catch (\Throwable $th) {
             $this->pdo->rollback();
             throw $th;
             return false;
         }
-
     }
 }
-
-?>
