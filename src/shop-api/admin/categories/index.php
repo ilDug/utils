@@ -75,6 +75,32 @@ $router->post('/', function() {
 
 
 
+$router->put('/assign/(\w+)/([.\w]+)', function($cat_name, $productId) {
+    try {
+        $categories = new CategoriesController();
+        echo json_encode( $categories->assign($cat_name, $productId) );
+    } catch (\Exception $err) {
+        header($_SERVER['SERVER_PROTOCOL'] . ' ' . $err->getCode() . ' ' . $err->getMessage());
+    }
+    $categories->pdo = null;
+});
+
+
+
+
+$router->put('/detach/(\w+)/([.\w]+)', function($cat_name, $productId) {
+    try {
+        $categories = new CategoriesController();
+        echo json_encode( $categories->detach($cat_name, $productId) );
+    } catch (\Exception $err) {
+        header($_SERVER['SERVER_PROTOCOL'] . ' ' . $err->getCode() . ' ' . $err->getMessage());
+    }
+    $categories->pdo = null;
+});
+
+
+
+
 $router->put('/(\w+)', function($old_name) {
     $body = json_decode(file_get_contents('php://input'));
     try {

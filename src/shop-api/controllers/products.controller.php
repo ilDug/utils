@@ -1,6 +1,6 @@
 <?php
-require_once __RID__ . '/../lib/shop.pdo.php';
-require_once __RID__ . '/../lib/utils.php';
+require_once __DIR__ . '/../lib/shop.pdo.php';
+require_once __DIR__ . '/../lib/utils.php';
 
 
 
@@ -10,7 +10,7 @@ class ProductsController
     
     const QF_INSERT  = __DIR__ . "/../queries/product-insert.sql";
     const QF_EDIT  = __DIR__ . "/../queries/product-edit.sql";
-    const Q_SELECT  = __DIR__ . "/../queries/products-select.sql";
+    const QF_SELECT  = __DIR__ . "/../queries/products-select.sql";
     const Q_DELETE  = "DELETE FROM products WHERE productId = :productId";
     const Q_HIDE  = "UPDATE products SET hidden = :hidden WHERE productId = :productId";
 
@@ -29,11 +29,12 @@ class ProductsController
     {
         $productId = !$productId ? "%" : $productId;
 
-        $st = $this->pdo->prepare(self::Q_SELECT);
+        $sql = file_get_contents(self::QF_SELECT);
+        $st = $this->pdo->prepare($sql);
         $st->bindParam(':productId',    $productId,     PDO::PARAM_STR);
         $st->bindParam(':hidden',       $hidden,        PDO::PARAM_INT);
         $st->execute();
-
+        // return $st->debugDumpParams();
 
         $products = array();
         while($row = $st->fetch()){
@@ -59,7 +60,7 @@ class ProductsController
         $st->bindParam(':brand',        $product->brand,        PDO::PARAM_STR);
         $st->bindParam(':product',      $product_json,          PDO::PARAM_STR);
         if(!$res = $st->execute() ) 
-            throw new Exception("Errore inserimento " . json_encode($st->errorInfo()), 1);
+            throw new Exception("Errore inserimento " . json_encode($st->errorInfo()[2]), 500);
         else return $product;
     }
 
@@ -83,7 +84,7 @@ class ProductsController
         $st->bindParam(':brand',        $product->brand,        PDO::PARAM_STR);
         $st->bindParam(':product',      $product_json,          PDO::PARAM_STR);
         if(!$res = $st->execute() ) 
-            throw new Exception("Errore modifica " . json_encode($st->errorInfo()), 1);
+            throw new Exception("Errore modifica " . json_encode($st->errorInfo()[2]), 500);
         else return $product;
     }
 
@@ -97,7 +98,7 @@ class ProductsController
         $st = $this->pdo->prepare(self::Q_DELETE);
         $st->bindParam(':productId',    $productId,    PDO::PARAM_STR);
         if(!$res = $st->execute() ) 
-            throw new Exception("Errore eliminazione " . json_encode($st->errorInfo()), 1);
+            throw new Exception("Errore eliminazione " . json_encode($st->errorInfo()[2]), 500);
         else return $st->rowCount();
     }
 
@@ -109,7 +110,7 @@ class ProductsController
         $st->bindParam(':productId',    $productId,     PDO::PARAM_STR);
         $st->bindParam(':hidden',       $hidden,        PDO::PARAM_INT);
         if(!$res = $st->execute() ) 
-            throw new Exception("Errore oscuramento " . json_encode($st->errorInfo()), 1);
+            throw new Exception("Errore oscuramento " . json_encode($st->errorInfo()[2]), 500);
         else return $res;
     }
 

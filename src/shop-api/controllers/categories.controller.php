@@ -52,8 +52,8 @@ class CategoriesController
         $st = $this->pdo->prepare(self::Q_INSERT);
         $st->bindParam(':name',    $category->name,    PDO::PARAM_STR);
         $st->bindParam(':title',   $category->title,   PDO::PARAM_STR);
-        if(!$st->execute() )  
-            throw new Exception("Errore inserimento " . json_encode($st->errorInfo()), 500); 
+        if(!$st->execute() || ($st->rowCount()) < 1 )  
+            throw new Exception("Errore inserimento " . json_encode($st->errorInfo()[2]), 500); 
         else return $category;
     }
 
@@ -72,8 +72,8 @@ class CategoriesController
         $st->bindParam(':old_name',    $old_name,          PDO::PARAM_STR);
         $st->bindParam(':name',        $category->name,    PDO::PARAM_STR);
         $st->bindParam(':title',       $category->title,   PDO::PARAM_STR);
-        if(!$st->execute() || ($st->rowCount()) < 1) 
-            throw new Exception("Errore modifica " . json_encode($st->errorInfo()), 500);
+        if( !$st->execute() || ($st->rowCount()) < 1) 
+            throw new Exception("Errore modifica " . json_encode($st->errorInfo()[2]), 500);
 
         else return $this->read($category->name);
     }
@@ -87,8 +87,8 @@ class CategoriesController
     {
         $st = $this->pdo->prepare(self::Q_DELETE);
         $st->bindParam(':name',    $cat_name,    PDO::PARAM_STR);
-        if(!$res = $st->execute() ) 
-            throw new Exception("Errore eliminazione " . json_encode($st->errorInfo()), 500);
+        if( !$st->execute() ) 
+            throw new Exception("Errore eliminazione " . json_encode($st->errorInfo()[2]), 500);
         else return $st->rowCount();
     }
 
@@ -105,8 +105,8 @@ class CategoriesController
         $st = $this->pdo->prepare(self::Q_ASSIGN);
         $st->bindParam(':productId',    $productId,    PDO::PARAM_STR);
         $st->bindParam(':cat_name',     $cat_name,     PDO::PARAM_STR);
-        if(!$res = $st->execute() ) 
-            throw new Exception("Errore assegnazione categoria " . json_encode($st->errorInfo()), 500);
+        if( !$st->execute() ) 
+            throw new Exception("Errore assegnazione categoria " . json_encode($st->errorInfo()[2]), 500);
         else return $st->rowCount() > 0;
     }
 
@@ -120,11 +120,11 @@ class CategoriesController
         if(!$cat_name) {throw new Exception("Attibuto mancante NOME CATEGORIA" , 400); return false;}
         if(!$productId) {throw new Exception("Attibuto mancante ID PRODOTTO" , 400); return false;}
         
-        $st = $this->pdo->prepare(self::Q_ASSIGN);
+        $st = $this->pdo->prepare(self::Q_DETACH);
         $st->bindParam(':productId',    $productId,        PDO::PARAM_STR);
         $st->bindParam(':cat_name',     $cat_name,         PDO::PARAM_STR);
-        if(!$res = $st->execute() ) 
-            throw new Exception("Errore rimozione categoria da prodotto " . json_encode($st->errorInfo()), 500);
+        if( !$st->execute() ) 
+            throw new Exception("Errore rimozione categoria da prodotto " . json_encode($st->errorInfo()[2]), 500);
         else return $st->rowCount() > 0;    
     }
 

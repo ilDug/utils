@@ -19,7 +19,7 @@ $router = new \Bramus\Router\Router();
 
 
 
-$router->get('/(\w+)', function($productId) {
+$router->get('/([.\w]+)', function($productId) {
     try {
         $products = new ProductsController();
         echo json_encode( $products->read($productId, 1) );
@@ -47,7 +47,7 @@ $router->get('/', function() {
 
 
 
-$router->delete('/(\w+)', function($productId) {
+$router->delete('/([.\w]+)', function($productId) {
     try {
         $products = new ProductsController();
         echo json_encode( $products->remove($productId) );
@@ -62,10 +62,10 @@ $router->delete('/(\w+)', function($productId) {
 
 
 $router->post('/', function() {
-    $product = json_decode(file_get_contents('php://input'));
+    $body = json_decode(file_get_contents('php://input'));
     try {
         $products = new ProductsController();
-        echo json_encode( $products->add($product) );
+        echo json_encode( $products->add($body->product) );
     } catch (\Exception $err) {
         header($_SERVER['SERVER_PROTOCOL'] . ' ' . $err->getCode() . ' ' . $err->getMessage());
     }
@@ -75,7 +75,7 @@ $router->post('/', function() {
 
 
 
-$router->put('/hide/(\w+)', function($productId) {
+$router->put('/hide/([.\w]+)', function($productId) {
     try {
         $products = new ProductsController();
         echo json_encode( $products->hide($productId) );
@@ -88,7 +88,7 @@ $router->put('/hide/(\w+)', function($productId) {
 
 
 
-$router->put('/show/(\w+)', function($productId) {
+$router->put('/show/([.\w]+)', function($productId) {
     try {
         $products = new ProductsController();
         echo json_encode( $products->show($productId) );
@@ -101,11 +101,11 @@ $router->put('/show/(\w+)', function($productId) {
 
 
 
-$router->put('/(\w+)', function($productId) {
-    $product = json_decode(file_get_contents('php://input'));
+$router->put('/', function() {
+    $body = json_decode(file_get_contents('php://input'));
     try {
         $products = new ProductsController();
-        echo json_encode( $products->edit($product) );
+        echo json_encode( $products->edit($body->product) );
     } catch (\Exception $err) {
         header($_SERVER['SERVER_PROTOCOL'] . ' ' . $err->getCode() . ' ' . $err->getMessage());
     }

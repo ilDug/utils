@@ -14,7 +14,7 @@ $router = new \Bramus\Router\Router();
 
 
 
-$router->get('/(\w+)', function($productId) {
+$router->get('/([.\w]+)', function($productId) {
     try {
         $products = new ProductsController();
         echo json_encode( $products->read($productId) );
