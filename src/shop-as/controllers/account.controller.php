@@ -6,8 +6,11 @@ require_once __DIR__ . '/../lib/string.utility.php';
 require_once __DIR__ . '/../classes/jwt.php';
 require_once __DIR__ . '/../classes/rsa-key-chain.php';
 require_once __DIR__ . '/../emails/email.class.php';
+require_once __DIR__ . '/../emails/email-template.class.php';
 
 use \DAG\Mail;
+use \DAG\Template;
+
 /*
 	* classe per la gestione degli accessi e degli utenti
 	* collegata ad una tabella del database che gestisce gli utenti
@@ -229,8 +232,9 @@ class AccountController
         $user = $st->fetch();
 
         /** crea una mail */
-        $body = file_get_contents(self::EF_ACTIVATION_EMAIL);
-        $body = str_replace(["%ACTIVATION_KEY%"], [$user->activationKey], $body);
+        $body = (new Template(self::EF_ACTIVATION_EMAIL))
+            ->fill(["%ACTIVATION_KEY%"], [$user->activationKey])
+            ->payload;
 
         try {
             $email = new Mail();

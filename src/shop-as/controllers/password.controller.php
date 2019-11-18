@@ -4,6 +4,7 @@ require_once __DIR__ . '/account.controller.php';
 require_once __DIR__ . '/../lib/date.utility.php';
 
 use \DAG\Mail;
+use \DAG\Template;
 
 
 /*
@@ -66,8 +67,9 @@ class PasswordController extends AccountController
         };
 
         /** crea una mail */
-        $body = file_get_contents(self::EF_RECOVER_EMAIL);
-        $body = str_replace(["%RECOVER_KEY%"], [$recoverKey], $body);
+        $body = (new Template(self::EF_RECOVER_EMAIL))
+            ->fill(["%RECOVER_KEY%"], [$recoverKey])
+            ->payload;
 
         try {
             $message = new Mail();

@@ -2,6 +2,7 @@
 require_once __DIR__ . "/account.controller.php";
 
 use \DAG\Mail;
+use \DAG\Template;
 
 class AccountActivationController extends AccountController
 {
@@ -41,8 +42,9 @@ class AccountActivationController extends AccountController
 
 
         /** crea una mail */
-        $body = file_get_contents(self::EF_ACTIVATION_EMAIL);
-        $body = str_replace(["%ACTIVATION_KEY%"], [$data->activationKey], $body);
+        $body = (new Template(self::EF_ACTIVATION_EMAIL))
+                    ->fill(["%ACTIVATION_KEY%"], [$data->activationKey])
+                    ->payload;
 
         try {
             $mail = new Mail();
