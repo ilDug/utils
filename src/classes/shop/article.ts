@@ -9,19 +9,16 @@ export class Article extends Product{
 
     constructor(a: Partial<Article>, orderId?: string) {
         super(a);
-        a.articleId = a.articleId || annualCode('a');
-        a.orderId = a.orderId || orderId || undefined;
 
         /** assegna le proprietà */
         Object.assign(this, a);
     }
 
-    /** ID del database */
-    public articleId: string = null;
-
-
-    /** codice univoco dell'Ordine */
-    public orderId : string = undefined;
+    /** 
+     * ID del database WAREHOUSE
+     * da assegnare quando l'ordine è gia stato eseguito, ma prima della spedizione
+    */
+    public articleIds: number[] = [];
     
     /**
     * prezzo finale da salvare sul server nel momento del pagamento che contiene la ripartizione degli sconti

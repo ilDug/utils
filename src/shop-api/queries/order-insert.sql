@@ -1,9 +1,8 @@
-INSERT INTO `shop`.`orders` (`orderId`, `uid`, `email`, `order`, `year`)
+INSERT INTO `shop`.`orders` (`orderId`, `uid`, `order`, `year`)
 VALUES
   (
     :orderId,
     :uid, 
-    :email,
     :order,
     YEAR(NOW())
   );

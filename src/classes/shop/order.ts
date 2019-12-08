@@ -30,9 +30,6 @@ export class Order{
     /** codie utente  */
     public uid: string = null;
 
-    /** email usata nella creazione dell'ordine */
-    public email:string = null;
-
 /***********************************************************************+ */
 
     /** elenco di OrderItems */
