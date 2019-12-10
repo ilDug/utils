@@ -15,6 +15,7 @@ class OrdersController
 
     const QF_INSERT = __DIR__ . '/../queries/order-insert.sql';
     const QF_UPDATE = __DIR__ . '/../queries/order-update.sql';
+    const QF_SELECT = __DIR__ . '/../queries/orders-select.sql';
 
 
     const FIELDS = [
@@ -23,9 +24,26 @@ class OrdersController
     ];
 
 
-    public function read()
+    public function read($orderId = false, $uid = false,  $year = false)
     {
-        /** TO DO fai riferimento a quello che c'è critto i products */
+        $orderId =  !$orderId ?     "%" : $orderId;
+        $year =     !$year ?        "%" : $year;
+        $uid =      !$uid ?         "%" : $uid;
+
+        $sql = file_get_contents(self::QF_SELECT);
+        $st = $this->pdo->prepare($sql);
+        $st->bindParam(':orderId',  $orderId,   PDO::PARAM_STR);
+        $st->bindParam(':year',     $orderId,   PDO::PARAM_INT);
+        $st->bindParam(':uid',      $uid,       PDO::PARAM_STR);
+        $st->execute();
+        // return $st->debugDumpParams();
+
+        $orders = array();
+        while ($row = $st->fetch()) {
+            $orders[] = json_decode($row->order);
+        }
+
+        return $orderId == "%" ? $orders : ($orders[0] ? $orders[0] : null);
     }
 
 

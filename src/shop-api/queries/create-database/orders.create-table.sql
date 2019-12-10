@@ -1,5 +1,4 @@
 
-DROP TABLE IF EXISTS articles;
 DROP TABLE IF EXISTS orders;
 
 CREATE TABLE IF NOT EXISTS  orders (
