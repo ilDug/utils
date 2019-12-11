@@ -62,6 +62,7 @@ export class Order{
      * RETURNED 
      * REFOUNDED 
      * CLOSED 
+     * CANCELLED
     */
     public status: string = 'SHOPPING';
 
@@ -195,6 +196,17 @@ export class Order{
     public close(positive: boolean): Order {
         this.dates.closingDate = new Date().getTime();
         this.status = "CLOSED"
+        return this;
+    }
+
+
+
+
+    /**
+     *
+     */
+    public cancel(): Order {
+        this.status = "CANCELLED"
         return this;
     }
 

@@ -13,9 +13,12 @@ class OrdersController
         $this->pdo = ShopConnection::pdo();
     }
 
+    const READ_LIMIT = 10;
+
     const QF_INSERT = __DIR__ . '/../queries/order-insert.sql';
     const QF_UPDATE = __DIR__ . '/../queries/order-update.sql';
     const QF_SELECT = __DIR__ . '/../queries/orders-select.sql';
+    const Q_SELECT_BY_USER = "SELECT `order` from orders WHERE uid = :uid";
 
 
     const FIELDS = [
@@ -24,19 +27,17 @@ class OrdersController
     ];
 
 
-    public function read($orderId = false, $uid = false,  $year = false)
+
+
+    public function read($orderId = false,  $limit = self::READ_LIMIT)
     {
-        $orderId =  !$orderId ?     "%" : $orderId;
-        $year =     !$year ?        "%" : $year;
-        $uid =      !$uid ?         "%" : $uid;
+        $orderId =  !$orderId ? "%" : $orderId;
 
         $sql = file_get_contents(self::QF_SELECT);
         $st = $this->pdo->prepare($sql);
         $st->bindParam(':orderId',  $orderId,   PDO::PARAM_STR);
-        $st->bindParam(':year',     $orderId,   PDO::PARAM_INT);
-        $st->bindParam(':uid',      $uid,       PDO::PARAM_STR);
+        $st->bindParam(':limit',    $limit,     PDO::PARAM_INT);
         $st->execute();
-        // return $st->debugDumpParams();
 
         $orders = array();
         while ($row = $st->fetch()) {
@@ -45,6 +46,23 @@ class OrdersController
 
         return $orderId == "%" ? $orders : ($orders[0] ? $orders[0] : null);
     }
+
+
+
+    public function read_by_user($uid)
+    {
+        $st = $this->pdo->prepare(self::Q_SELECT_BY_USER);
+        $st->bindParam(':uid', $uid, PDO::PARAM_STR);
+        $st->execute();
+
+        $orders = array();
+        while ($row = $st->fetch()) {
+            $orders[] = json_decode($row->order);
+        }
+
+        return $orders;
+    }
+
 
 
     /** crea un ordine nel database */
@@ -66,6 +84,7 @@ class OrdersController
             throw new Exception("Errore inserimento " . json_encode($st->errorInfo()[2]), 500);
         else return $order;
     }
+
 
     /** modifica un ordine esistente */
     public function edit($order)
