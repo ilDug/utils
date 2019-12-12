@@ -3,66 +3,70 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 
 
- /**
-  * struttura tipica del payload del JWT
-  */
- class JwtClaims {
-        // iss (issuer): Issuer of the JWT
-        public $iss;
+/**
+ * struttura tipica del payload del JWT
+ */
+class JwtClaims
+{
+    // iss (issuer): Issuer of the JWT
+    public $iss;
 
-        // sub (subject): Subject of the JWT (the user)
-        public $sub;
+    // sub (subject): Subject of the JWT (the user)
+    public $sub;
 
-        // aud (audience): Recipient for which the JWT is intended
-        public $aud;
+    // aud (audience): Recipient for which the JWT is intended
+    public $aud;
 
-        // exp (expiration time): Time after which the JWT expires
-        public $exp;
+    // exp (expiration time): Time after which the JWT expires
+    public $exp;
 
-        // nbf (not before time): Time before which the JWT must not be accepted for processing
-        public $nbf;
+    // nbf (not before time): Time before which the JWT must not be accepted for processing
+    public $nbf;
 
-        // iat (issued at time): Time at which the JWT was issued; can be used to determine age of the JWT
-        public $iat;
+    // iat (issued at time): Time at which the JWT was issued; can be used to determine age of the JWT
+    public $iat;
 
-        // jti (JWT ID): Unique identifier; can be used to prevent the JWT from being replayed (allows a token to be used only once)
-        public $jti;
-         
-        // user ID
-        public $uid;
+    // jti (JWT ID): Unique identifier; can be used to prevent the JWT from being replayed (allows a token to be used only once)
+    public $jti;
 
-        // durata del token in secondi, per calcolare  $epx
-        public $duration;
+    // user ID
+    public $uid;
 
-
+    // durata del token in secondi, per calcolare  $epx
+    public $duration;
 
 
-        function __construct($claims = [])
-        {
-            foreach ($claims as $key => $value) {
-                $this->{$key}  = $value;
-            }
 
-            $this->duration = isset($this->duration) ? $this->duration : (60 * 60 * 12);
-            $this->iat = isset($this->iat) ? $this->iat : time();
-            $this->nbf = isset($this->nbf) ? $this->nbf : time();
-            $this->exp = isset($this->exp) ? $this->exp : time() + $this->duration;
-            $this->jti = isset($this->jti) ? $this->jti : $this->generateJTI();
-            $this->iss = isset($this->iss) ? $this->iss : "as.eurokemical.lan";
-            $this->aud = isset($this->aud) ? $this->aud : "eurokemical.lan";
+
+    function __construct($claims = [])
+    {
+        foreach ($claims as $key => $value) {
+            $this->{$key}  = $value;
         }
 
+        $this->duration = isset($this->duration) ? $this->duration : (60 * 60 * 12);
+        $this->iat = isset($this->iat) ? $this->iat : time();
+        $this->nbf = isset($this->nbf) ? $this->nbf : time();
+        $this->exp = isset($this->exp) ? $this->exp : time() + $this->duration;
+        $this->jti = isset($this->jti) ? $this->jti : $this->generateJTI();
+        $this->iss = isset($this->iss) ? $this->iss : "as.dag.lan";
+        $this->aud = isset($this->aud) ? $this->aud : "dag.lan";
+    }
 
 
 
-        /** genera un identificativo del token e ritona la stringa 32 caratteri */
-        private function generateJTI(){
-            $jti = '';
-            /** itera tutte le proprietà della classe  */
-            foreach ($this as $key => $value) { $jti  .= (string) $value; }
-            return md5($jti);
+
+    /** genera un identificativo del token e ritona la stringa 32 caratteri */
+    private function generateJTI()
+    {
+        $jti = '';
+        /** itera tutte le proprietà della classe  */
+        foreach ($this as $key => $value) {
+            $jti  .= (string) $value;
         }
- }
+        return md5($jti);
+    }
+}
 
 
 
@@ -70,10 +74,12 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 
 
-class JwtValidationSettings{
+class JwtValidationSettings
+{
     public $fields;
 
-    public function __construct(array $fields){
+    public function __construct(array $fields)
+    {
         $this->fields = [
             'jti' => null,
             'iss' => null,
@@ -82,7 +88,7 @@ class JwtValidationSettings{
         ];
 
         foreach ($this->fields as $claim => $value) {
-            if(isset($fields[$claim])){
+            if (isset($fields[$claim])) {
                 $this->fields[$claim] = $fields[$claim];
             }
         }
@@ -91,15 +97,16 @@ class JwtValidationSettings{
 
 
 
-    use Lcobucci\JWT\Builder;
-    use Lcobucci\JWT\Parser;
-    use Lcobucci\JWT\ValidationData;
-    use Lcobucci\JWT\Signer\Rsa\Sha256; // you can use Lcobucci\JWT\Signer\Ecdsa\Sha256 if you're using ECDSA keys
-    use Lcobucci\JWT\Signer\Key;
+use Lcobucci\JWT\Builder;
+use Lcobucci\JWT\Parser;
+use Lcobucci\JWT\ValidationData;
+use Lcobucci\JWT\Signer\Rsa\Sha256; // you can use Lcobucci\JWT\Signer\Ecdsa\Sha256 if you're using ECDSA keys
+use Lcobucci\JWT\Signer\Key;
 
 
 
- class JWT{
+class JWT
+{
 
 
 
@@ -112,10 +119,11 @@ class JwtValidationSettings{
     public $checked = false;
 
 
-    function  __construct($jwt =  null){
-        if(!is_null($jwt)){
+    function  __construct($jwt =  null)
+    {
+        if (!is_null($jwt)) {
             $this->parse($jwt);
-        } 
+        }
     }
 
     // $rawClaims = array(
@@ -135,9 +143,13 @@ class JwtValidationSettings{
      * @param $claims,  array dei dati da inserire nel payload
      * 
      */
-    public function generate($claims,  $privateKey){
+    public function generate($claims,  $privateKey)
+    {
         /** controlla che il parametro dei claims sia un array */
-        if(!is_array($claims)){ throw new Exception("il parametro payload non è un array", 400); die(); }
+        if (!is_array($claims)) {
+            throw new Exception("il parametro payload non è un array", 400);
+            die();
+        }
 
         /** crea l'istanza dell'oggetto CLAIMS */
         $jwtClaims = new JwtClaims($claims);
@@ -150,7 +162,9 @@ class JwtValidationSettings{
 
         /** crea l'istanza del costruttore del token */
         $builder = (new Builder());
-        foreach ($jwtClaims as $key => $value) { $builder = $builder->withClaim($key, $value); }
+        foreach ($jwtClaims as $key => $value) {
+            $builder = $builder->withClaim($key, $value);
+        }
 
         /** creates a signature using your private key and Retrieves the generated token */
         $token = $builder->getToken($signer,  $privateKeyObj);
@@ -167,7 +181,8 @@ class JwtValidationSettings{
     /**
      * funzione principale che esegue la verifica e la validazione
      */
-    public function check($publicKey){
+    public function check($publicKey)
+    {
         $this->checked = true;
         $this->pristine = false;
         $this->verify($publicKey);
@@ -180,16 +195,17 @@ class JwtValidationSettings{
 
 
 
-// $jvs = new JwtValidationSettings([
-//             'jti' => null,
-//             'iss' => null,
-//             'aud' => null,
-//             'sub' => null
-//         ]);
+    // $jvs = new JwtValidationSettings([
+    //             'jti' => null,
+    //             'iss' => null,
+    //             'aud' => null,
+    //             'sub' => null
+    //         ]);
     /**
      * valida i claims JTI ,  ISS ,  AUD e le date  enunciate dal MANIFEST
      */
-    private function validate(JwtValidationSettings $jvs = null){
+    private function validate(JwtValidationSettings $jvs = null)
+    {
         $vd = new ValidationData(); // It will use the current time to validate (iat, nbf and exp)
         // $vd->setIssuer($jvs['iss']);
         // $vd->setAudience($jvs['aud']);
@@ -202,7 +218,8 @@ class JwtValidationSettings{
     /**
      * vrficia che la SIGNATURE sia corretta ( usa RSA public key)
      */
-    private function verify($publicKey){
+    private function verify($publicKey)
+    {
         $signer = new Sha256();
         $publicKeyObj = new Key($publicKey);
         $this->verified = $this->token->verify($signer, $publicKeyObj);
@@ -212,20 +229,13 @@ class JwtValidationSettings{
     /**
      * imposta jwt da stringa in ingresso
      */
-    private function parse($jwt){
-        $token = (new Parser())->parse((string)$jwt);
+    private function parse($jwt)
+    {
+        $token = (new Parser())->parse((string) $jwt);
         $this->token = $token;
         $this->header = $token ? $token->getHeaders() : null;
 
         /** permette di elaborare eventuali oggetti JSON annidiati */
-        $this->payload = $token ? json_decode( json_encode( $token->getClaims() ) ) : null;
+        $this->payload = $token ? json_decode(json_encode($token->getClaims())) : null;
     }
-
- }//chiude classe
-
-
-
-
-
-
-?>
+}//chiude classe

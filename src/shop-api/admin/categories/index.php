@@ -4,8 +4,7 @@ header('Content-Type: application/json');
 require_once __DIR__ . '/../../auth/auth.controller.php';
 $auth = new \DAG\Auth();
 $auth->authenticate(true);
-if(!in_array("admin" ,$auth->claims->authorizations)) 
-    { header($_SERVER['SERVER_PROTOCOL'] . ' 401 Pagina disponibile solo agli amministratori'); die(); }
+$auth->authorize("admin", true, "Pagina disponibile solo agli amministratori", true);
 /*-------------------------------------------------------------------------*/
 
 // Require composer autoloader
@@ -116,4 +115,3 @@ $router->put('/(\w+)', function($old_name) {
 
 // Run it!
 $router->run();
-?>

@@ -85,4 +85,3 @@ $router->get('/check/(\w+)', function($permission) {
 
 // Run it!
 $router->run();
-?>

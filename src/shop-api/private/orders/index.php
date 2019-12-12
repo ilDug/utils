@@ -58,6 +58,9 @@ $router->get('/', function () {
 });
 
 
+
+
+
 $router->post('/', function () {
     $auth = new \DAG\Auth();
     $auth->authenticate(true);
@@ -66,6 +69,24 @@ $router->post('/', function () {
     try {
         $orders = new OrdersController();
         echo json_encode($orders->create($body->order));
+    } catch (\Exception $err) {
+        header($_SERVER['SERVER_PROTOCOL'] . ' ' . $err->getCode() . ' ' . $err->getMessage());
+    }
+    $orders->pdo = null;
+});
+
+
+
+
+
+$router->put('/', function () {
+    $auth = new \DAG\Auth();
+    $auth->authenticate(true);
+    $body = json_decode(file_get_contents('php://input'));
+
+    try {
+        $orders = new OrdersController();
+        echo json_encode($orders->edit($body->order));
     } catch (\Exception $err) {
         header($_SERVER['SERVER_PROTOCOL'] . ' ' . $err->getCode() . ' ' . $err->getMessage());
     }
