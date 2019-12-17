@@ -24,6 +24,7 @@ class WareHouseController
 
     const QF_INSERT = __DIR__ . "/../queries/warehouse-article-insert.sql";
     const QF_SELECT = __DIR__ . "/../queries/warehouse-article-select.sql";
+    const QF_UPDATE = __DIR__ . "/../queries/warehouse-article-update.sql";
 
 
     public function read($articleId = false, $available = 0)
@@ -67,5 +68,51 @@ class WareHouseController
         if (!$res)
             throw new Exception("errore inserimento articolo in magazzino " . json_encode($st->errorInfo()[2]), 500);
         else return $this->read($this->pdo->lastInsertId());
+    }
+
+
+    /**
+     * STOCK
+     * EXPIRED
+     * SOLD
+     * GIFT
+     * OBSOLETE
+     * LOST
+     */
+    public function set_article($articleId,  $status,  $dateOut =  false,  $available = 0)
+    {
+        $dateOut = $dateOut === false
+            ? date("Y-m-d H:i:s")
+            : ($dateOut === null
+                ? null
+                : \DAG\UTILS\DateParser::timestampToMysql($dateOut));
+
+        $sql = file_get_contents(self::QF_SELECT);
+        $st = $this->pdo->prepare($sql);
+        $st->bindParam(':articleid', $articleId, PDO::PARAM_INT);
+        $st->bindParam(':available', $available, PDO::PARAM_INT);
+        $st->bindParam(':status', $status, PDO::PARAM_STR);
+        $st->bindParam(':dateOut', $dateOut, PDO::PARAM_STR);
+
+        if (!$st->execute() || ($st->rowCount() < 1))
+            throw new Exception("errore modifica dell\'articolo in magazzino " . json_encode($st->errorInfo()[2]), 500);
+        else return $this->read($articleId);
+    }
+
+
+
+
+
+    /**
+     * cerca la corrispondenza tra sku e productId nella tabella "products
+     * altrimenti genera un nuovo sku
+     */
+    public function get_sku()
+    {
+    }
+
+
+    public function next_batch()
+    {
     }
 }
