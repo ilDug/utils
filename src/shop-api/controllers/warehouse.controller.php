@@ -26,10 +26,24 @@ class WareHouseController
     const QF_SELECT = __DIR__ . "/../queries/warehouse-article-select.sql";
 
 
-    public function read($articleId = false, $unavailable = false)
+    public function read($articleId = false, $available = 0)
     {
-
         $articleId = !$articleId ? "%" : $articleId;
+        $sql = file_get_contents(self::QF_SELECT);
+        $st = $this->pdo->prepare($sql);
+        $st->bindParam(':articleid', $articleId, PDO::PARAM_STR);
+        $st->bindParam(':available', $available, PDO::PARAM_INT);
+        $st->execute();
+        // echo $st->debugDumpParams();
+        $articles = array();
+        while ($row = $st->fetch()) {
+            $row->dateIn = \DAG\UTILS\DateParser::mysqlToTimestampJS($row->dateIn);
+            $row->dateOut = \DAG\UTILS\DateParser::mysqlToTimestampJS($row->dateOut);
+            $row->dateExpiry = \DAG\UTILS\DateParser::mysqlToTimestampJS($row->dateExpiry);
+            $articles[] = $row;
+        }
+
+        return $articleId == "%" ? $articles : ($articles[0] ? $articles[0] : null);
     }
 
 

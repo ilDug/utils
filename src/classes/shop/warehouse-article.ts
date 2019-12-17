@@ -1,7 +1,6 @@
 
 /**
- * type         [CAPITAL LETTERS]   2-4 digits
- * code         [base20]            3 digits
+ * code         [base36]            3 digits
  * batch        year [numbers]      2 digits
  * bathc num    [base 20]           2 digits
  * item num      [number]            variable digits starting from 1
@@ -10,6 +9,9 @@
  * PO.001.1901.1.1
  * 
  */
+
+
+
 
 export class WarehouseArticle{
 
@@ -35,7 +37,7 @@ export class WarehouseArticle{
 
     public dateExpiry: number = null;
 
-    public status: string = "STOCK"
+    public status: string = "STOCK";
 
     /**
      * STOCK
