@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../lib/shop.pdo.php';
 require_once __DIR__ . '/../lib/utils.php';
 require_once __DIR__ . '/../lib/date.utility.php';
+require_once __DIR__ . '/../lib/Base36.php';
 
 class WareHouseController
 {
@@ -25,6 +26,8 @@ class WareHouseController
     const QF_INSERT = __DIR__ . "/../queries/warehouse-article-insert.sql";
     const QF_SELECT = __DIR__ . "/../queries/warehouse-article-select.sql";
     const QF_UPDATE = __DIR__ . "/../queries/warehouse-article-update.sql";
+    const Q_SELECT_SKU = "SELECT sku FROM products WHERE productId = productId;";
+    // 
 
 
     public function read($articleId = false, $available = 0)
@@ -55,11 +58,12 @@ class WareHouseController
         }
 
         $dateExpiry = $article->dateExpiry ?  \DAG\UTILS\DateParser::timestampToMysql($article->dateExpiry) : null;
+        $sku = $this->get_sku($article->productId);
 
         $sql = file_get_contents(self::QF_INSERT);
         $st = $this->pdo->prepare($sql);
         $st->bindParam(':productId', $article->productId, PDO::PARAM_STR);
-        $st->bindParam(':sku', $article->sku, PDO::PARAM_STR);
+        $st->bindParam(':sku', $sku, PDO::PARAM_STR);
         $st->bindParam(':batch', $article->batch, PDO::PARAM_STR);
         $st->bindParam(':item', $article->item, PDO::PARAM_INT);
         $st->bindParam(':dateExpiry', $dateExpiry, PDO::PARAM_STR);
@@ -107,8 +111,13 @@ class WareHouseController
      * cerca la corrispondenza tra sku e productId nella tabella "products
      * altrimenti genera un nuovo sku
      */
-    public function get_sku()
+    public function get_sku($productId)
     {
+        $st = $this->pdo->prepare(self::Q_SELECT_SKU);
+        $st->bindParam(':product:Id', $productId, PDO::PARAM_STR);
+        $st->execute();
+        $row = $st->fetch();
+        return $row->sku;
     }
 
 

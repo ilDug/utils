@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../lib/shop.pdo.php';
 require_once __DIR__ . '/../lib/utils.php';
+require_once __DIR__ . '/../lib/Base36.php';
 
 
 
@@ -13,11 +14,11 @@ class ProductsController
     const QF_SELECT  = __DIR__ . "/../queries/products-select.sql";
     const Q_DELETE  = "DELETE FROM products WHERE productId = :productId";
     const Q_HIDE  = "UPDATE products SET hidden = :hidden WHERE productId = :productId";
+    const Q_SELECT_SKU_MAX = "SELECT sku FROM products WHERE ORDER BY sku DESC LIMIT 1";
 
     const FIELDS = [
         "productId",
         "identifier",
-        "sku",
         "brand",
         "product"
     ];
@@ -56,12 +57,17 @@ class ProductsController
             return false;
         }
 
+        $st = $this->pdo->prepare(self::Q_SELECT_SKU_MAX);
+        $st->execute();
+        $row = $st->fetch();
+        $sku = Base36x3::next($row->sku);
+
         $product_json = json_encode($product);
         $sql = file_get_contents(self::QF_INSERT);
         $st = $this->pdo->prepare($sql);
         $st->bindParam(':productId',    $product->productId,    PDO::PARAM_STR);
         $st->bindParam(':identifier',   $product->identifier,   PDO::PARAM_STR);
-        $st->bindParam(':sku',          $product->sku,          PDO::PARAM_STR);
+        $st->bindParam(':sku',          $sku,                   PDO::PARAM_STR);
         $st->bindParam(':brand',        $product->brand,        PDO::PARAM_STR);
         $st->bindParam(':product',      $product_json,          PDO::PARAM_STR);
         if (!$res = $st->execute())
