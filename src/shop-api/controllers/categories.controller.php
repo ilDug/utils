@@ -48,7 +48,7 @@ class CategoriesController
     /** add ITEM, return added item or NULL*/
     public function add($category)
     {
-        if(!DAG\UTILS\checkFields($category, self::FIELDS)){ return false;}
+        if(!DAG\UTILS\checkFields($category, self::FIELDS)) return false;
         $st = $this->pdo->prepare(self::Q_INSERT);
         $st->bindParam(':name',    $category->name,    PDO::PARAM_STR);
         $st->bindParam(':title',   $category->title,   PDO::PARAM_STR);
@@ -66,7 +66,7 @@ class CategoriesController
      */
     public function edit($category, $old_name)
     {
-        if(!DAG\UTILS\checkFields($category, self::FIELDS)){ return false;}
+        if(!DAG\UTILS\checkFields($category, self::FIELDS)) return false;
 
         $st = $this->pdo->prepare(self::Q_EDIT);
         $st->bindParam(':old_name',    $old_name,          PDO::PARAM_STR);
@@ -133,4 +133,3 @@ class CategoriesController
 
 }//chiude la classe
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- ?>

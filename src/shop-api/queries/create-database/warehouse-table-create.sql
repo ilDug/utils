@@ -5,7 +5,7 @@ CREATE TABLE warehouse (
   `productId` VARCHAR(32) NOT NULL,
 
   `sku` VARCHAR(32) NOT NULL,
-  `batch` VARCHAR(2) NULL DEFAULT NULL,
+  `batch` VARCHAR(6) NULL DEFAULT NULL,
   `item` INT NULL DEFAULT NULL,
 
   `available` INT NULL DEFAULT 1,

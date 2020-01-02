@@ -14,7 +14,7 @@ class ProductsController
     const QF_SELECT  = __DIR__ . "/../queries/products-select.sql";
     const Q_DELETE  = "DELETE FROM products WHERE productId = :productId";
     const Q_HIDE  = "UPDATE products SET hidden = :hidden WHERE productId = :productId";
-    const Q_SELECT_SKU_MAX = "SELECT sku FROM products WHERE ORDER BY sku DESC LIMIT 1";
+    const Q_SELECT_SKU_MAX = "SELECT sku FROM products  ORDER BY sku DESC LIMIT 1";
 
     const FIELDS = [
         "productId",
@@ -53,13 +53,13 @@ class ProductsController
     /** add ITEM, return added item or NULL*/
     public function add($product)
     {
-        if (!DAG\UTILS\checkFields($product, self::FIELDS)) {
-            return false;
-        }
+        if (!DAG\UTILS\checkFields($product, self::FIELDS)) return false;
 
+        /** seleziona l'ultimo sku inserito nel database */
         $st = $this->pdo->prepare(self::Q_SELECT_SKU_MAX);
         $st->execute();
         $row = $st->fetch();
+        /** assegna al sku quello successivo generadolo con la funzione Base36 */
         $sku = Base36x3::next($row->sku);
 
         $product_json = json_encode($product);
@@ -84,9 +84,8 @@ class ProductsController
      */
     public function edit($product)
     {
-        if (!DAG\UTILS\checkFields($product, self::FIELDS)) {
-            return false;
-        }
+        if (!DAG\UTILS\checkFields($product, self::FIELDS)) return false;
+
 
         $product_json = json_encode($product);
         $sql = file_get_contents(self::QF_EDIT);

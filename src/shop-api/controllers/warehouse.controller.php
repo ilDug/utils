@@ -16,18 +16,15 @@ class WareHouseController
 
     const FIELDS = [
         "productId",
-        "sku",
-        "batch",
-        "item",
-        "status"
+        "sku"
     ];
 
 
     const QF_INSERT = __DIR__ . "/../queries/warehouse-article-insert.sql";
     const QF_SELECT = __DIR__ . "/../queries/warehouse-article-select.sql";
     const QF_UPDATE = __DIR__ . "/../queries/warehouse-article-update.sql";
-    const Q_SELECT_SKU = "SELECT sku FROM products WHERE productId = productId;";
-    // 
+
+
 
 
     public function read($articleId = false, $available = 0)
@@ -51,27 +48,39 @@ class WareHouseController
     }
 
 
-    public function add_article($article)
+    public function add_articles($article, $quantity = 1)
     {
-        if (!DAG\UTILS\checkFields($article, self::FIELDS)) {
-            return false;
+        if (!DAG\UTILS\checkFields($article, self::FIELDS)) return false;
+        $article->dateExpiry = $article->dateExpiry ?  \DAG\UTILS\DateParser::timestampToMysql($article->dateExpiry) : null;
+        $article->batch = $this->next_batch($article->sku);
+
+        try {
+            $this->pdo->beginTransaction();
+            $articles = array();
+
+            for ($i = 0; $i < $quantity; $i++) {
+                $sql = file_get_contents(self::QF_INSERT);
+                $st = $this->pdo->prepare($sql);
+                $st->bindParam(':productId', $article->productId, PDO::PARAM_STR);
+                $st->bindParam(':sku', $article->sku, PDO::PARAM_STR);
+                $st->bindParam(':batch', $article->batch, PDO::PARAM_STR);
+                $st->bindParam(':item', $quantity + 1, PDO::PARAM_INT);
+                $st->bindParam(':dateExpiry', $article->dateExpiry, PDO::PARAM_STR);
+                $st->bindParam(':status', $article->status, PDO::PARAM_STR);
+                $res = $st->execute();
+                if (!$res)
+                    throw new Exception("errore inserimento articolo in magazzino " . json_encode($st->errorInfo()[2]), 500);
+                else
+                    $articles[] = $this->read($this->pdo->lastInsertId());
+            }
+
+            $this->pdo->commit();
+            return $articles;
+        } catch (\Throwable $th) {
+            $this->pdo->rollback();
+            throw $th;
+            return;
         }
-
-        $dateExpiry = $article->dateExpiry ?  \DAG\UTILS\DateParser::timestampToMysql($article->dateExpiry) : null;
-        $sku = $this->get_sku($article->productId);
-
-        $sql = file_get_contents(self::QF_INSERT);
-        $st = $this->pdo->prepare($sql);
-        $st->bindParam(':productId', $article->productId, PDO::PARAM_STR);
-        $st->bindParam(':sku', $sku, PDO::PARAM_STR);
-        $st->bindParam(':batch', $article->batch, PDO::PARAM_STR);
-        $st->bindParam(':item', $article->item, PDO::PARAM_INT);
-        $st->bindParam(':dateExpiry', $dateExpiry, PDO::PARAM_STR);
-        $st->bindParam(':status', $article->status, PDO::PARAM_STR);
-        $res = $st->execute();
-        if (!$res)
-            throw new Exception("errore inserimento articolo in magazzino " . json_encode($st->errorInfo()[2]), 500);
-        else return $this->read($this->pdo->lastInsertId());
     }
 
 
@@ -82,6 +91,11 @@ class WareHouseController
      * GIFT
      * OBSOLETE
      * LOST
+     * 
+     * modifica un article nel warehouse
+     * può modificare solo available,  lo status e la data di uscita
+     * @param string status 
+     * @param int articleId
      */
     public function set_article($articleId,  $status,  $dateOut =  false,  $available = 0)
     {
@@ -106,22 +120,30 @@ class WareHouseController
 
 
 
-
-    /**
-     * cerca la corrispondenza tra sku e productId nella tabella "products
-     * altrimenti genera un nuovo sku
+    /** 
+     * batch nella forma 19xx
+     * @return string quattro caratteri
      */
-    public function get_sku($productId)
+    private function next_batch($sku)
     {
-        $st = $this->pdo->prepare(self::Q_SELECT_SKU);
-        $st->bindParam(':product:Id', $productId, PDO::PARAM_STR);
+        // cerca l'ultimo batch di un sku
+        $sql = "SELECT  batch from warehouse WHERE sku = :sku ORDER BY batch DESC LIMIT 1 ";
+        $st = $this->pdo->prepare($sql);
+        $st->bindParam(':sku', $sku, PDO::PARAM_STR);
         $st->execute();
         $row = $st->fetch();
-        return $row->sku;
-    }
 
+        $year = date('y');
 
-    public function next_batch()
-    {
+        /** se non esiste il batch lo crea nuovo */
+        if (!$row) return $year . Base36x2::next('');
+
+        /** se esiste il batch divide l'anno e il codice */
+        $y = substr($row->batch, 0, 2);
+        $b = substr($row->batch, 2, 2);
+
+        /** controllo anno. se l'anno in corso è maggiore dell'ultimo batch allora ricomincia da capo */
+        if ($year > $y) return $year . Base36x2::next('');
+        else return $y . Base36x2::next($b);
     }
 }

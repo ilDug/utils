@@ -68,9 +68,8 @@ class OrdersController
     /** crea un ordine nel database */
     public function create($order)
     {
-        if (!DAG\UTILS\checkFields($order, self::FIELDS)) {
-            return false;
-        }
+        if (!DAG\UTILS\checkFields($order, self::FIELDS)) return false;
+
 
         $order_json = json_encode($order);
 
@@ -89,9 +88,8 @@ class OrdersController
     /** modifica un ordine esistente */
     public function edit($order)
     {
-        if (!DAG\UTILS\checkFields($order, self::FIELDS)) {
-            return false;
-        }
+        if (!DAG\UTILS\checkFields($order, self::FIELDS)) return false;
+
 
         $order_json = json_encode($order);
         $sql = file_get_contents(self::QF_UPDATE);
