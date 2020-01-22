@@ -432,3 +432,4 @@ class Fuse {
 }
 
 module.exports = Fuse
+export default Fuse

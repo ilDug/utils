@@ -1,6 +1,6 @@
 
 
-class User {
+export class User {
 
     constructor(u: Partial<User>) {
         Object.assign(this, u)
