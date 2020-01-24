@@ -1,6 +1,6 @@
 {
   "name": "@ildug/utils",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "utilities, classes and functions for typescript projects",
   "main": "index.js",
   "repository": "https://github.com/ilDug/utils.git",
@@ -8,6 +8,7 @@
   "license": "MIT",
   "private": false,
   "dependencies": {
+    "@angular/common": "^8.2.14",
     "lodash": "^4.17.15",
     "rxjs": "^6.5.3"
   }
