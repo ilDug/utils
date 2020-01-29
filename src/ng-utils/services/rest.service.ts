@@ -1,28 +1,66 @@
 import { ReplaySubject, Observable, pipe } from 'rxjs'
-import { map } from 'rxjs/operators'
+import { map, filter, tap } from 'rxjs/operators'
 import { HttpClient } from '@angular/common/http'
 
 export abstract class RestService<T>{
-
+    /**
+     * @param baseUrl url base dove inviare le richieste http,  nella forma https://api.sito.lan/items/
+     */
     constructor(
+        baseUrl: string,
         protected http: HttpClient
-    ){}
-
-    private items: ReplaySubject<T[]> = new ReplaySubject(1)
-
-    get items$(): Observable<T[]> { return this.items.asObservable() }
-
-    list():Promise<T[]>{
-        return this.http.get<T[]>('url')
-                .pipe(this.parser)
-                .toPromise()
+    ){
+        this.baseUrl = baseUrl
+        this.call()
     }
 
-    abstract parser = (any[]) => OperatorFunction
+    private baseUrl:string
+    private items: ReplaySubject<T[]> = new ReplaySubject(1)
+    get items$(): Observable<T[]> { return this.items.asObservable() }
 
+
+    /** 
+     * carica la lista di oggetti e resituisce una Promise
+     * chiamato nel constructor
+     */
+    call():Promise<T[]>{
+        return this.list().toPromise()
+    }
+
+    /** carica la lista di oggetti */
+    public list():Observable<T[]>{
+        return this.http.get<T[]>(this.baseUrl)
+                .pipe(
+                    filter(x => x !== null),
+                    map(list => this.listParser(list)),
+                    tap(list => this.items.next(list))
+                )
+    }
+    
+    /** load a singlo object by ID */
+    public load(id: string): Observable<T>{
+        return this.http.get<T>(this.baseUrl + id)
+            .pipe(
+                map(item => this.itemParser(item)),
+            )
+    }
+        
+    /** elabora le liste in arrivo dal server */
+    abstract listParser(list: T[]): T[] 
+
+    /** elabora l'oggetto in arrivo dal server */
+    abstract itemParser(item: T): T 
+
+    /** method to INSERT object to server */
+    abstract add(object: T): Observable<T>
+
+    /** method to UPDATE object to server */
+    abstract edit(object: T): Observable<T>
+
+    /** method to DELETE object from server */
+    abstract remove(object: T): Observable<boolean>
+
+   
 }
 
 
-export class ssdsd extends RestService<string>{
-    parser: import("rxjs").UnaryFunction<unknown, unknown>
-}
