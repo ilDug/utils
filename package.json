@@ -1,6 +1,6 @@
 {
   "name": "@ildug/utils",
-  "version": "1.0.1",
+  "version": "1.3.0",
   "description": "utilities, classes and functions for typescript projects",
   "main": "index.js",
   "repository": "https://github.com/ilDug/utils.git",
@@ -9,7 +9,14 @@
   "private": false,
   "dependencies": {
     "@angular/common": "^8.2.14",
+    "@angular/core": "^8.2.14",
     "lodash": "^4.17.15",
     "rxjs": "^6.5.3"
+  },
+  "devDependencies": {
+    "typescript": "^3.7.5"
+  },
+  "scripts": {
+    "tsc": "rm -rf ./dist/* && tsc "
   }
 }

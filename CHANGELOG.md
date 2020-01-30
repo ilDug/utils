@@ -1,5 +1,12 @@
 #Changelog
 
+## 1.3.0
+**TSC compilation**
+
+- all .ts file now are transpiled in DIST folder
+- definition types  .d.ts files are awailable
+- fixed bug on shopping cart cookies "constructor"
+
 ## 1.2.0
 **new NG-UTILS folder**
 
