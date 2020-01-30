@@ -17,7 +17,7 @@ export class ShoppingCartItem {
     public title: string;
 
     private _quantity: number = 1;
-    get quantity(): number { return this.quantity };
+    get quantity(): number { return this._quantity };
 
 
     public increment() { this._quantity = this._quantity + 1 }
