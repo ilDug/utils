@@ -1,11 +1,12 @@
 
-export interface IAuthenticationI {
+export interface IAuthentication {
     /**
      * GETTER method for JWT 
      * read from LocalStorage 
      * @return the raw token
      */
     jwt(): string;
+
 
     /**
      * SETTER
@@ -31,9 +32,9 @@ export interface IAuthenticationI {
 
     /**
      * GETTER
-     * @return username
+     * @return email
      */
-    username(): string
+    email(): string
 
 
 

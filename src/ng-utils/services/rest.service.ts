@@ -4,17 +4,17 @@ import { HttpClient } from '@angular/common/http'
 
 export abstract class RestService<T>{
     /**
-     * @param baseUrl url base dove inviare le richieste http,  nella forma https://api.sito.lan/items/
+     * @param endpoint url base dove inviare le richieste http,  nella forma https://api.sito.lan/items/
      */
     constructor(
-        baseUrl: string,
+        endpoint: string,
         protected http: HttpClient
     ){
-        this.baseUrl = baseUrl
+        this.endpoint = endpoint
         this.call()
     }
 
-    private baseUrl:string
+    private endpoint:string
     private items: ReplaySubject<T[]> = new ReplaySubject(1)
     get items$(): Observable<T[]> { return this.items.asObservable() }
 
@@ -29,7 +29,7 @@ export abstract class RestService<T>{
 
     /** carica la lista di oggetti */
     public list():Observable<T[]>{
-        return this.http.get<T[]>(this.baseUrl)
+        return this.http.get<T[]>(this.endpoint)
                 .pipe(
                     filter(x => x !== null),
                     map(list => this.listParser(list)),
@@ -39,7 +39,7 @@ export abstract class RestService<T>{
     
     /** load a singlo object by ID */
     public load(id: string): Observable<T>{
-        return this.http.get<T>(this.baseUrl + id)
+        return this.http.get<T>(this.endpoint + id)
             .pipe(
                 map(item => this.itemParser(item)),
             )

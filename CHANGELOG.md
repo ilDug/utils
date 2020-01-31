@@ -1,4 +1,10 @@
-#Changelog
+# Changelog
+
+## 1.3.1
+**ng-utils**
+
+- miglioramenti all'esportazione della cartella ng-utils
+- aggiunta interfaccia ACCOUNT SERVICE
 
 ## 1.3.0
 **TSC compilation**
