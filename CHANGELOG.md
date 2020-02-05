@@ -1,12 +1,21 @@
 # Changelog
 
+
+## 1.3.2
+
+**ng-utils**
+
+- aggiunti gli interceptors comuni in ng-utils
+- 
 ## 1.3.1
+
 **ng-utils**
 
 - miglioramenti all'esportazione della cartella ng-utils
 - aggiunta interfaccia ACCOUNT SERVICE
 
 ## 1.3.0
+
 **TSC compilation**
 
 - all .ts file now are transpiled in DIST folder
@@ -14,11 +23,13 @@
 - fixed bug on shopping cart cookies "constructor"
 
 ## 1.2.0
+
 **new NG-UTILS folder**
 
 - created interface for angular HTTP service
 
 ## 1.0.1
+
 **scaffolding**
 
 - created three folders for conceptual separatopn of files
