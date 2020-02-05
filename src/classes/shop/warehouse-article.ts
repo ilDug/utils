@@ -16,17 +16,32 @@
 export class WarehouseArticle{
 
     constructor(wa: Partial<WarehouseArticle>){
+        
+        if(!wa.productId) throw new Error("il productId è obbligatorio");
+        if(!wa.sku) throw new Error("il SKU è obbligatorio");
+        
         Object.assign(this, wa);
     }
 
+    /** id del database generato in automatico dal database */
     public articleId: string = null;
 
+    /** riferimento all'ID del prodotto (OBBLIGATORIO) */
     public productId: string = null;
 
+    /** riferimento all'SKU del prodotto (OBBLIGATORIO) 
+     * nella forma XXX
+    */
     public sku: string = null;
 
+    /** 
+     * codice della fornitua 
+     * generato in automatico dal database
+     * nella forma 20xx
+     */
     public batch: string = null;
 
+    /** codice consecutivo per ogni batch in base alla quantità */
     public item: number = null;
 
     public available: number = null;
@@ -49,6 +64,6 @@ export class WarehouseArticle{
      */
 
      get code(){
-         return `${this.sku}.${this.batch}.${this.item}.${this.articleId}`
+         return `${this.sku}.${this.batch}.${this.item}}`
      }
 }
